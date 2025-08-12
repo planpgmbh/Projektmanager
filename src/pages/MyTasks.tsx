@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ListTodo, ChevronDown, ChevronUp, X, Calendar } from 'lucide-react';
 import { collection, query, onSnapshot, where } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuthState } from '../hooks/useAuthState';
 import Sidebar from '../components/Sidebar';
@@ -105,7 +106,7 @@ function MyTasks() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<FilterState>({ status: [], customer: [], dueDate: 'all' });
-  const [sort, setSort] = useState<SortState>({ field: null, direction: 'desc' });
+  const [sort, setSort] = useState<SortState>({ field: 'date', direction: 'asc' });
   
   // Filter dropdown states
   const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
@@ -212,6 +213,25 @@ function MyTasks() {
       task.customerName.toLowerCase().includes(term) ||
       task.projectName.toLowerCase().includes(term)
     );
+  };
+
+  const handleTaskStatusToggle = async (taskId: string, statusdone: boolean) => {
+    if (!user) return;
+
+    try {
+      // Find the task to get project information
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      // Update the task status in Firebase
+      const taskRef = doc(db, `projects/${task.projectId}/tasks`, taskId);
+      await updateDoc(taskRef, { statusdone });
+      
+      setError(null);
+    } catch (err) {
+      console.error('Error updating task status:', err);
+      setError('Fehler beim Aktualisieren des Aufgabenstatus');
+    }
   };
 
   // Data fetching
@@ -743,9 +763,11 @@ function MyTasks() {
                             <input
                               type="checkbox"
                               checked={task.statusdone}
-                              onChange={(e) => e.stopPropagation()}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handleTaskStatusToggle(task.id, e.target.checked);
+                              }}
                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                              readOnly
                             />
                             <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${
                               task.statusdone 
@@ -779,18 +801,14 @@ function MyTasks() {
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm text-gray-900 min-w-[80px]">
-                              {formatCurrency(task.totalEffort)}
-                            </span>
-                            <div className="flex-1 max-w-[120px]">
-                              <BudgetBar
-                                totalValue={task.totalEffort}
-                                budget={task.budget_total}
-                                height="sm"
-                                showPlaceholder={true}
-                              />
-                            </div>
+                          <div className="flex justify-end">
+                            <BudgetBar
+                              totalValue={task.totalEffort}
+                              budget={task.budget_total}
+                              height="sm"
+                              showPlaceholder={true}
+                              className="w-[120px]"
+                            />
                           </div>
                         </td>
                       </tr>
