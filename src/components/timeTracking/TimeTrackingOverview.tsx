@@ -339,7 +339,7 @@ function TimeTrackingOverview() {
         </div>
 
         {/* Time Entries - 4 Equal Columns */}
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y divide-gray-200 border-t border-gray-200">
           {getEntriesForDate(selectedDate).length > 0 ? (
             getEntriesForDate(selectedDate).map((entry) => (
               <div 
