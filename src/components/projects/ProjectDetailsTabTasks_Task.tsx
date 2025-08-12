@@ -204,15 +204,6 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
                       } else if (e.key === 'Escape') {
                         setEditingTaskId(null);
                       }
-                    }
-                    }
-                )
-                }
-                
-      )
-      }
-  )
-}      }
                     }}
                     className="flex-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     autoFocus
