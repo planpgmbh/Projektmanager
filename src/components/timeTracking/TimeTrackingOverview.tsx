@@ -359,7 +359,7 @@ function TimeTrackingOverview() {
                 <div className="flex items-center">
                   <div className="space-y-1 w-full">
                     {/* Projekt */}
-                    <div className="text-sm text-gray-900">
+                    <div className="text-sm text-gray-900 font-semibold">
                       <Dropdown
                         trigger={
                           <span className="cursor-pointer hover:text-blue-600">
@@ -463,9 +463,11 @@ function TimeTrackingOverview() {
                     ) : (
                       <span
                         onClick={() => startEditing(entry.id, 'note', entry.note)}
-                        className="cursor-text hover:text-blue-600 block w-full"
+                        className={`cursor-text hover:text-blue-600 block w-full ${
+                          !entry.note ? 'text-gray-400' : ''
+                        }`}
                       >
-                        {entry.note || '...'}
+                        {entry.note || 'Notiz hinzufügen'}
                       </span>
                     )}
                   </div>
