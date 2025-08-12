@@ -9,7 +9,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=proxy
       - traefik.http.services.www_projects.loadbalancer.server.port=80
-      - traefik.http.routers.www_projects.rule=Host(`projects.plan-p.de`)
+      - traefik.http.routers.www_projects.rule=Host(`projectmanager.plan-p.de`)
       - traefik.http.routers.www_projects.entrypoints=websecure
       - traefik.http.routers.www_projects.tls=true
       - traefik.http.routers.www_projects.tls.certresolver=letsencrypt
