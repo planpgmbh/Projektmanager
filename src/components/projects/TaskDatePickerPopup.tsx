@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
+import { X } from 'lucide-react';
 import { Popup, PopupFooter } from '../ui/Popup';
 import { Button } from '../ui/Button';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -23,6 +24,7 @@ function TaskDatePickerPopup({
   const [selectedDueDate, setSelectedDueDate] = useState<Date | null>(
     initialDueDate ? new Date(initialDueDate) : null
   );
+  const [focusedInput, setFocusedInput] = useState<'start' | 'end' | null>('start');
 
   const handleSave = () => {
     onSave(selectedStartDate, selectedDueDate);
@@ -34,43 +36,54 @@ function TaskDatePickerPopup({
       const [start, end] = dates;
       setSelectedStartDate(start);
       setSelectedDueDate(end);
+      
+      // Auto-focus logic: if start is selected but no end, focus end input
+      if (start && !end) {
+        setFocusedInput('end');
+      }
     } else {
       setSelectedStartDate(null);
       setSelectedDueDate(null);
+      setFocusedInput('start');
     }
   };
 
   const handleClearDates = () => {
     setSelectedStartDate(null);
     setSelectedDueDate(null);
+    setFocusedInput('start');
   };
 
-  const formatDateRange = () => {
-    if (!selectedStartDate && !selectedDueDate) {
-      return 'Termine festlegen';
-    }
-    
-    const formatDate = (date: Date) => {
-      return new Intl.DateTimeFormat('de-DE', {
-        day: '2-digit',
-        month: 'short'
-      }).format(date);
-    };
+  const formatDateForInput = (date: Date | null) => {
+    if (!date) return '';
+    return new Intl.DateTimeFormat('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit'
+    }).format(date);
+  };
 
-    if (selectedStartDate && selectedDueDate) {
-      return `${formatDate(selectedStartDate)} - ${formatDate(selectedDueDate)}`;
-    } else if (selectedStartDate) {
-      return `Ab ${formatDate(selectedStartDate)}`;
-    } else if (selectedDueDate) {
-      return `Bis ${formatDate(selectedDueDate)}`;
-    }
-    
-    return 'Termine festlegen';
+  const handleStartInputClick = () => {
+    setFocusedInput('start');
+  };
+
+  const handleEndInputClick = () => {
+    setFocusedInput('end');
+  };
+
+  const clearStartDate = () => {
+    setSelectedStartDate(null);
+    setFocusedInput('start');
+  };
+
+  const clearEndDate = () => {
+    setSelectedDueDate(null);
+    setFocusedInput('end');
   };
 
   return (
     <Popup
-      title={formatDateRange()}
+      title="Termine festlegen"
       onClose={onClose}
       maxWidth="md"
       footer={
@@ -85,8 +98,71 @@ function TaskDatePickerPopup({
       }
     >
       <div className="space-y-6">
-        {/* Date Range Picker */}
-        <div className="w-full flex justify-center">
+        {/* Date Input Fields */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Start Date Input */}
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Startdatum
+            </label>
+            <div 
+              className={`relative border rounded-lg px-3 py-3 cursor-pointer transition-all duration-200 ${
+                focusedInput === 'start' 
+                  ? 'border-gray-900 ring-1 ring-gray-900' 
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+              onClick={handleStartInputClick}
+            >
+              <div className="text-sm text-gray-900">
+                {selectedStartDate ? formatDateForInput(selectedStartDate) : '13/08/25'}
+              </div>
+              {selectedStartDate && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearStartDate();
+                  }}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full"
+                >
+                  <X className="h-3 w-3 text-gray-400" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* End Date Input */}
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Enddatum
+            </label>
+            <div 
+              className={`relative border rounded-lg px-3 py-3 cursor-pointer transition-all duration-200 ${
+                focusedInput === 'end' 
+                  ? 'border-gray-900 ring-1 ring-gray-900' 
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+              onClick={handleEndInputClick}
+            >
+              <div className="text-sm text-gray-900">
+                {selectedDueDate ? formatDateForInput(selectedDueDate) : '17/08/25'}
+              </div>
+              {selectedDueDate && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearEndDate();
+                  }}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full"
+                >
+                  <X className="h-3 w-3 text-gray-400" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Calendar */}
+        <div className="flex justify-center">
           <DatePicker
             selected={selectedStartDate}
             onChange={handleDateChange}
@@ -95,39 +171,23 @@ function TaskDatePickerPopup({
             selectsRange
             inline
             dateFormat="dd.MM.yyyy"
-            className="task-date-range-picker-modern"
+            className="airbnb-date-picker"
             monthsShown={1}
+            showPopperArrow={false}
           />
         </div>
 
-        {/* Selected Range Display */}
+        {/* Clear All Button */}
         {(selectedStartDate || selectedDueDate) && (
-          <div className="bg-gray-50 p-3 rounded-md">
-            <div className="text-sm font-medium text-gray-900 mb-2">Ausgewählter Zeitraum:</div>
-            <div className="space-y-1 text-sm text-gray-700">
-              {selectedStartDate && (
-                <div>
-                  <span className="font-medium">Startdatum:</span> {selectedStartDate.toLocaleDateString('de-DE')}
-                </div>
-              )}
-              {selectedDueDate && (
-                <div>
-                  <span className="font-medium">Fälligkeitsdatum:</span> {selectedDueDate.toLocaleDateString('de-DE')}
-                </div>
-              )}
-            </div>
+          <div className="flex justify-center">
+            <button
+              onClick={handleClearDates}
+              className="text-sm text-gray-500 hover:text-gray-700 underline transition-colors duration-150"
+            >
+              Termine entfernen
+            </button>
           </div>
         )}
-
-        {/* Clear Dates Button */}
-        <div className="flex justify-center">
-          <button
-            onClick={handleClearDates}
-            className="text-sm text-gray-500 hover:text-gray-700 underline"
-          >
-            Termine entfernen
-          </button>
-        </div>
       </div>
     </Popup>
   );
