@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ListTodo, ChevronDown, ChevronUp, X, Calendar } from 'lucide-react';
-import { collection, query, onSnapshot, where } from 'firebase/firestore';
+import { collection, query, onSnapshot, where, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuthState } from '../hooks/useAuthState';
 import Sidebar from '../components/Sidebar';
@@ -105,7 +105,7 @@ function MyTasks() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<FilterState>({ status: [], customer: [], dueDate: 'all' });
-  const [sort, setSort] = useState<SortState>({ field: null, direction: 'desc' });
+  const [sort, setSort] = useState<SortState>({ field: 'date', direction: 'asc' });
   
   // Filter dropdown states
   const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
@@ -139,6 +139,17 @@ function MyTasks() {
       style: 'currency',
       currency: 'EUR'
     }).format(amount);
+  };
+
+  // Handle task status toggle
+  const handleTaskStatusToggle = async (taskId: string, projectId: string, statusdone: boolean) => {
+    try {
+      const taskRef = doc(db, `projects/${projectId}/tasks`, taskId);
+      await updateDoc(taskRef, { statusdone });
+    } catch (err) {
+      console.error('Error updating task status:', err);
+      setError('Fehler beim Aktualisieren des Aufgabenstatus');
+    }
   };
 
   const isTaskOverdue = (task: TaskWithDetails): boolean => {
@@ -686,7 +697,7 @@ function MyTasks() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
                       STATUS
                     </th>
                     <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -738,22 +749,17 @@ function MyTasks() {
                         onClick={() => handleRowClick(task)}
                         className="cursor-pointer hover:bg-gray-50 transition-colors duration-150"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
+                        <td className="px-3 py-4 whitespace-nowrap w-16">
+                          <div className="flex items-center justify-center">
                             <input
                               type="checkbox"
                               checked={task.statusdone}
-                              onChange={(e) => e.stopPropagation()}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handleTaskStatusToggle(task.id, task.projectId, e.target.checked);
+                              }}
                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                              readOnly
                             />
-                            <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${
-                              task.statusdone 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {task.statusdone ? 'Abgeschlossen' : 'Offen'}
-                            </span>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -779,11 +785,8 @@ function MyTasks() {
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm text-gray-900 min-w-[80px]">
-                              {formatCurrency(task.totalEffort)}
-                            </span>
-                            <div className="flex-1 max-w-[120px]">
+                          <div className="flex items-center justify-center">
+                            <div className="w-full max-w-[120px]">
                               <BudgetBar
                                 totalValue={task.totalEffort}
                                 budget={task.budget_total}
