@@ -14,6 +14,7 @@ import Team from './pages/Team';
 import Orders from './pages/Orders';
 import Invoices from './pages/Invoices';
 import TimeTracking from './pages/TimeTracking';
+import MyTasks from './pages/MyTasks';
 import Settings from './pages/Settings';
 
 function RouteTracker() {
@@ -70,6 +71,7 @@ function App() {
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/team" element={<Team />} />
+                <Route path="/mytasks" element={<MyTasks />} />
                 <Route path="/schedule" element={<TimeTracking />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/" element={<Navigate to={lastVisitedPage} replace />} />

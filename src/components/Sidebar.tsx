@@ -13,7 +13,8 @@ import {
   X,
   FileText,
   Receipt,
-  Bell
+  Bell,
+  ListTodo
 } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -25,6 +26,7 @@ import NotificationSidebar from './notifications/NotificationSidebar';
 const menuItems = [
   { icon: LayoutDashboard, text: 'Dashboard', path: '/dashboard' },
   { icon: Clock, text: 'Zeiterfassung', path: '/schedule' },
+  { icon: ListTodo, text: 'Meine Aufgaben', path: '/mytasks' },
   { icon: FolderKanban, text: 'Projekte', path: '/projects' },
   { icon: Building2, text: 'Kunden', path: '/customers' },
   { icon: FileText, text: 'Angebote', path: '/orders' },
