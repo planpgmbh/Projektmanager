@@ -42,7 +42,6 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
   const [editingTaskBudget, setEditingTaskBudget] = useState<string>('');
   const [editingBudgetTaskId, setEditingBudgetTaskId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [editingDateTaskId, setEditingDateTaskId] = useState<string | null>(null);
   const [editingAssigneeTaskId, setEditingAssigneeTaskId] = useState<string | null>(null);
   const [dataLoaded, setDataLoaded] = useState(false);
 
@@ -198,7 +197,8 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
         statusdone: false,
         ordernum: maxOrdernum + 1000,
         assignto: '',
-        date: '',
+        startDate: '',
+        dueDate: '',
         effort_total: 0,
         budget_total: 0,
         services: [],
@@ -289,18 +289,18 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
     }
   };
 
-  const handleTaskDateEdit = async (taskId: string, date: Date | null) => {
+  const handleTaskDatesEdit = async (taskId: string, startDate: Date | null, dueDate: Date | null) => {
     if (!projectId) return;
 
     try {
       const taskRef = doc(db, `projects/${projectId}/tasks`, taskId);
       await updateDoc(taskRef, { 
-        date: date ? date.toISOString().split('T')[0] : '' 
+        startDate: startDate ? startDate.toISOString().split('T')[0] : '',
+        dueDate: dueDate ? dueDate.toISOString().split('T')[0] : ''
       });
-      setEditingDateTaskId(null);
     } catch (err) {
-      console.error('Error updating task date:', err);
-      setError('Fehler beim Aktualisieren des Datums');
+      console.error('Error updating task dates:', err);
+      setError('Fehler beim Aktualisieren der Termine');
     }
   };
 
@@ -456,18 +456,16 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
       editingTaskName,
       editingTaskBudget,
       editingBudgetTaskId,
-      editingDateTaskId,
       editingAssigneeTaskId,
       handleTaskStatusChange,
       handleTaskNameEdit,
       handleTaskBudgetEdit,
-      handleTaskDateEdit,
+      handleTaskDatesEdit,
       handleTaskAssigneeEdit,
       setEditingTaskId,
       setEditingTaskName,
       setEditingTaskBudget,
       setEditingBudgetTaskId,
-      setEditingDateTaskId,
       setEditingAssigneeTaskId,
       formatCurrency,
       formatDate
@@ -484,7 +482,7 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
             <div></div>
             <div className="text-xs font-medium text-gray-500 uppercase">Name</div>
             <div className="text-xs font-medium text-gray-500 uppercase text-right">Verantwortung</div>
-            <div className="text-xs font-medium text-gray-500 uppercase text-right">Fälligkeit</div>
+            <div className="text-xs font-medium text-gray-500 uppercase text-right">Termine</div>
             <div className="text-xs font-medium text-gray-500 uppercase text-right">Aufwand</div>
             <div className="text-xs font-medium text-gray-500 uppercase text-right">Budget</div>
             <div></div>

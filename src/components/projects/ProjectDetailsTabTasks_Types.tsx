@@ -4,7 +4,8 @@ export interface Task {
   statusdone: boolean;
   ordernum: number;
   assignto: string;
-  date: string;
+  startDate: string;
+  dueDate: string;
   effort_total: number;
   budget_total: number;
   services: Service[];

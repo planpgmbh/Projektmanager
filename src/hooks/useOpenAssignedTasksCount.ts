@@ -8,7 +8,8 @@ interface Task {
   name: string;
   statusdone: boolean;
   assignto: string;
-  date: string;
+  startDate: string;
+  dueDate: string;
   budget_total: number;
   services: any[];
   sectionId: string;
