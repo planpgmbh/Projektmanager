@@ -400,7 +400,7 @@ function MyTasks() {
     let statusFilterToApply = filters.status;
     
     if (!hasUserInteractedWithFilters && filters.status.length === 0) {
-      statusFilterToApply = ['open']; // Show only open tasks by default
+      statusFilterToApply = ['open', 'completed']; // Show both open and completed tasks by default
     }
 
     if (statusFilterToApply.length > 0) {
@@ -697,7 +697,7 @@ function MyTasks() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th className="px-2 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                    <th className="pl-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
                       
                     </th>
                     <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -747,9 +747,11 @@ function MyTasks() {
                       <tr
                         key={task.id}
                         onClick={() => handleRowClick(task)}
-                        className="cursor-pointer hover:bg-gray-50 transition-colors duration-150"
+                        className={`cursor-pointer hover:bg-gray-50 transition-colors duration-150 ${
+                          task.statusdone ? 'opacity-50' : ''
+                        }`}
                       >
-                        <td className="px-2 py-4 whitespace-nowrap w-10 text-center">
+                        <td className="pl-6 py-4 whitespace-nowrap w-10 text-center">
                           <input
                             type="checkbox"
                             checked={task.statusdone}
