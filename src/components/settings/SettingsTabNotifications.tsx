@@ -17,6 +17,7 @@ function SettingsTabNotifications() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -36,8 +37,27 @@ function SettingsTabNotifications() {
       }
     };
 
+    // Check initial notification permission
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+
     fetchSettings();
   }, [user]);
+
+  // Listen for permission changes
+  useEffect(() => {
+    if (!('Notification' in window)) return;
+
+    const checkPermission = () => {
+      setNotificationPermission(Notification.permission);
+    };
+
+    // Check permission periodically in case user changes it in browser settings
+    const interval = setInterval(checkPermission, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSettingChange = (key: keyof NotificationSettings, value: boolean) => {
     setSettings(prev => ({
@@ -69,11 +89,69 @@ function SettingsTabNotifications() {
   };
 
   const requestNotificationPermission = async () => {
-    if ('Notification' in window) {
+    if (!('Notification' in window)) return;
+
+    try {
       const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      
       if (permission === 'granted') {
         handleSettingChange('pushNotifications', true);
+        // Save settings immediately when permission is granted
+        await handleSave();
+      } else if (permission === 'denied') {
+        handleSettingChange('pushNotifications', false);
+        await handleSave();
       }
+    } catch (err) {
+      console.error('Error requesting notification permission:', err);
+      setError('Fehler beim Anfordern der Berechtigung');
+    }
+  };
+
+  const handlePushNotificationToggle = async (enabled: boolean) => {
+    if (notificationPermission !== 'granted') return;
+    
+    handleSettingChange('pushNotifications', enabled);
+  };
+
+  const getBrowserNotificationStatus = () => {
+    if (!('Notification' in window)) {
+      return {
+        supported: false,
+        status: 'not-supported',
+        message: 'Browser-Benachrichtigungen werden von diesem Browser nicht unterstützt',
+        canToggle: false,
+        showButton: false
+      };
+    }
+
+    switch (notificationPermission) {
+      case 'granted':
+        return {
+          supported: true,
+          status: 'granted',
+          message: 'Browser-Benachrichtigungen sind aktiviert',
+          canToggle: true,
+          showButton: false
+        };
+      case 'denied':
+        return {
+          supported: true,
+          status: 'denied',
+          message: 'Browser-Benachrichtigungen sind in den Browser-Einstellungen blockiert. Bitte aktivieren Sie diese in Ihren Browser-Einstellungen.',
+          canToggle: false,
+          showButton: false
+        };
+      case 'default':
+      default:
+        return {
+          supported: true,
+          status: 'default',
+          message: 'Klicken Sie auf "Erlauben", um Browser-Benachrichtigungen zu aktivieren',
+          canToggle: false,
+          showButton: true
+        };
     }
   };
 
@@ -84,6 +162,8 @@ function SettingsTabNotifications() {
       </div>
     );
   }
+
+  const browserNotificationStatus = getBrowserNotificationStatus();
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -110,42 +190,75 @@ function SettingsTabNotifications() {
         <div className="border-t border-gray-200 pt-6">
           <div className="space-y-6">
             {/* Push Notifications */}
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
                 <h4 className="text-sm font-medium text-gray-900">Browser-Benachrichtigungen</h4>
-                <p className="text-sm text-gray-500">Erhalten Sie sofortige Benachrichtigungen in Ihrem Browser</p>
+                <p className="text-sm text-gray-500 mt-1">{browserNotificationStatus.message}</p>
+                
+                {/* Additional info for denied state */}
+                {browserNotificationStatus.status === 'denied' && (
+                  <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <p className="text-sm text-yellow-800">
+                      <strong>So aktivieren Sie Benachrichtigungen:</strong>
+                    </p>
+                    <ul className="text-sm text-yellow-700 mt-1 list-disc list-inside space-y-1">
+                      <li>Klicken Sie auf das Schloss-Symbol in der Adressleiste</li>
+                      <li>Setzen Sie "Benachrichtigungen" auf "Zulassen"</li>
+                      <li>Laden Sie die Seite neu</li>
+                    </ul>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2">
-                {!('Notification' in window) ? (
+                {!browserNotificationStatus.supported ? (
                   <span className="text-sm text-gray-400">Nicht unterstützt</span>
-                ) : Notification.permission === 'denied' ? (
-                  <span className="text-sm text-red-500">Blockiert</span>
-                ) : Notification.permission === 'default' ? (
+                ) : browserNotificationStatus.showButton ? (
                   <button
                     onClick={requestNotificationPermission}
-                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-150"
                   >
                     Erlauben
                   </button>
+                ) : browserNotificationStatus.status === 'denied' ? (
+                  <span className="text-sm text-red-500 font-medium">Blockiert</span>
                 ) : (
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       checked={settings.pushNotifications}
-                      onChange={(e) => handleSettingChange('pushNotifications', e.target.checked)}
+                      onChange={(e) => handlePushNotificationToggle(e.target.checked)}
+                      disabled={!browserNotificationStatus.canToggle}
                       className="sr-only"
                     />
-                    <div className={`w-11 h-6 rounded-full transition-colors ${
-                      settings.pushNotifications ? 'bg-blue-600' : 'bg-gray-200'
-                    }`}>
-                      <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
-                        settings.pushNotifications ? 'translate-x-5' : 'translate-x-0'
+                    <div className={`w-11 h-6 rounded-full transition-colors duration-200 ${
+                      settings.pushNotifications && browserNotificationStatus.canToggle ? 'bg-blue-600' : 'bg-gray-200'
+                    } ${!browserNotificationStatus.canToggle ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-200 ${
+                        settings.pushNotifications && browserNotificationStatus.canToggle ? 'translate-x-5' : 'translate-x-0'
                       } mt-0.5 ml-0.5`}></div>
                     </div>
                   </label>
                 )}
               </div>
             </div>
+
+            {/* Status indicator for browser notifications */}
+            {browserNotificationStatus.supported && (
+              <div className="ml-4 pl-4 border-l-2 border-gray-100">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    browserNotificationStatus.status === 'granted' ? 'bg-green-500' : 
+                    browserNotificationStatus.status === 'denied' ? 'bg-red-500' : 'bg-yellow-500'
+                  }`}></div>
+                  <span className="text-xs text-gray-600">
+                    Status: {
+                      browserNotificationStatus.status === 'granted' ? 'Aktiviert' :
+                      browserNotificationStatus.status === 'denied' ? 'Blockiert' : 'Nicht aktiviert'
+                    }
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Email Notifications */}
             <div className="flex items-center justify-between">
@@ -160,10 +273,10 @@ function SettingsTabNotifications() {
                   onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-11 h-6 rounded-full transition-colors ${
+                <div className={`w-11 h-6 rounded-full transition-colors duration-200 ${
                   settings.emailNotifications ? 'bg-blue-600' : 'bg-gray-200'
                 }`}>
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-200 ${
                     settings.emailNotifications ? 'translate-x-5' : 'translate-x-0'
                   } mt-0.5 ml-0.5`}></div>
                 </div>
@@ -183,10 +296,10 @@ function SettingsTabNotifications() {
                   onChange={(e) => handleSettingChange('taskAssignments', e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-11 h-6 rounded-full transition-colors ${
+                <div className={`w-11 h-6 rounded-full transition-colors duration-200 ${
                   settings.taskAssignments ? 'bg-blue-600' : 'bg-gray-200'
                 }`}>
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-200 ${
                     settings.taskAssignments ? 'translate-x-5' : 'translate-x-0'
                   } mt-0.5 ml-0.5`}></div>
                 </div>
@@ -206,10 +319,10 @@ function SettingsTabNotifications() {
                   onChange={(e) => handleSettingChange('projectUpdates', e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-11 h-6 rounded-full transition-colors ${
+                <div className={`w-11 h-6 rounded-full transition-colors duration-200 ${
                   settings.projectUpdates ? 'bg-blue-600' : 'bg-gray-200'
                 }`}>
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-200 ${
                     settings.projectUpdates ? 'translate-x-5' : 'translate-x-0'
                   } mt-0.5 ml-0.5`}></div>
                 </div>
@@ -229,14 +342,29 @@ function SettingsTabNotifications() {
                   onChange={(e) => handleSettingChange('comments', e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-11 h-6 rounded-full transition-colors ${
+                <div className={`w-11 h-6 rounded-full transition-colors duration-200 ${
                   settings.comments ? 'bg-blue-600' : 'bg-gray-200'
                 }`}>
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-200 ${
                     settings.comments ? 'translate-x-5' : 'translate-x-0'
                   } mt-0.5 ml-0.5`}></div>
                 </div>
               </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Information Section */}
+        <div className="border-t border-gray-200 pt-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+            <h4 className="text-sm font-medium text-blue-900 mb-2">Über Browser-Benachrichtigungen</h4>
+            <div className="text-sm text-blue-800 space-y-2">
+              <p>
+                Browser-Benachrichtigungen erscheinen als Desktop-Benachrichtigungen, auch wenn die Anwendung nicht aktiv ist.
+              </p>
+              <p>
+                Sie können diese Berechtigung jederzeit in Ihren Browser-Einstellungen ändern oder über das Schloss-Symbol in der Adressleiste.
+              </p>
             </div>
           </div>
         </div>
@@ -246,7 +374,7 @@ function SettingsTabNotifications() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition-colors duration-150"
             >
               {isSaving && (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
