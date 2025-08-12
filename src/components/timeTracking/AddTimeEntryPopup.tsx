@@ -362,11 +362,6 @@ function AddTimeEntryPopup({
               </div>
             </div>
             
-            {/* Hinweis zur automatischen Aufrundung */}
-            <div className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded-md p-2">
-              <strong>Hinweis:</strong> Zeiten werden automatisch auf das nächste 15-Minuten-Intervall aufgerundet.
-            </div>
-          </div>
         )}
       </div>
     </Popup>
