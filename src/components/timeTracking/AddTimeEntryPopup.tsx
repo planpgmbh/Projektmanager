@@ -361,7 +361,7 @@ function AddTimeEntryPopup({
                 />
               </div>
             </div>
-            
+          </div>
         )}
       </div>
     </Popup>
