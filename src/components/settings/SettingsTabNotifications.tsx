@@ -9,9 +9,7 @@ function SettingsTabNotifications() {
   const [settings, setSettings] = useState<NotificationSettings>({
     emailNotifications: true,
     pushNotifications: true,
-    taskAssignments: true,
-    projectUpdates: true,
-    comments: true
+    taskAssignments: true
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -220,7 +218,19 @@ function SettingsTabNotifications() {
                     Erlauben
                   </button>
                 ) : browserNotificationStatus.status === 'denied' ? (
-                  <span className="text-sm text-red-500 font-medium">Blockiert</span>
+                  <div className="relative group">
+                    <span className="text-sm text-red-500 font-medium cursor-help">Blockiert</span>
+                    
+                    {/* Hover tooltip for blocked state */}
+                    <div className="absolute hidden group-hover:block top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md shadow-lg z-10">
+                      <p className="text-sm font-medium mb-2">So aktivieren Sie Benachrichtigungen:</p>
+                      <ul className="text-sm space-y-1 list-disc list-inside">
+                        <li>Klicken Sie auf das Schloss-Symbol in der Adressleiste</li>
+                        <li>Setzen Sie "Benachrichtigungen" auf "Zulassen"</li>
+                        <li>Laden Sie die Seite neu</li>
+                      </ul>
+                    </div>
+                  </div>
                 ) : (
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -228,38 +238,6 @@ function SettingsTabNotifications() {
                       checked={settings.pushNotifications}
                       onChange={(e) => handlePushNotificationToggle(e.target.checked)}
                       disabled={!browserNotificationStatus.canToggle}
-                      className="sr-only"
-                    />
-                    <div className={`w-11 h-6 rounded-full transition-colors duration-200 ${
-                      settings.pushNotifications && browserNotificationStatus.canToggle ? 'bg-blue-600' : 'bg-gray-200'
-                    } ${!browserNotificationStatus.canToggle ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                      <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-200 ${
-                        settings.pushNotifications && browserNotificationStatus.canToggle ? 'translate-x-5' : 'translate-x-0'
-                      } mt-0.5 ml-0.5`}></div>
-                    </div>
-                  </label>
-                )}
-              </div>
-            </div>
-
-            {/* Status indicator for browser notifications */}
-            {browserNotificationStatus.supported && (
-              <div className="ml-4 pl-4 border-l-2 border-gray-100">
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${
-                    browserNotificationStatus.status === 'granted' ? 'bg-green-500' : 
-                    browserNotificationStatus.status === 'denied' ? 'bg-red-500' : 'bg-yellow-500'
-                  }`}></div>
-                  <span className="text-xs text-gray-600">
-                    Status: {
-                      browserNotificationStatus.status === 'granted' ? 'Aktiviert' :
-                      browserNotificationStatus.status === 'denied' ? 'Blockiert' : 'Nicht aktiviert'
-                    }
-                  </span>
-                </div>
-              </div>
-            )}
-
             {/* Email Notifications */}
             <div className="flex items-center justify-between">
               <div>
@@ -306,66 +284,6 @@ function SettingsTabNotifications() {
               </label>
             </div>
 
-            {/* Project Updates */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">Projektaktualisierungen</h4>
-                <p className="text-sm text-gray-500">Benachrichtigungen bei Projektzuweisungen und -änderungen</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.projectUpdates}
-                  onChange={(e) => handleSettingChange('projectUpdates', e.target.checked)}
-                  className="sr-only"
-                />
-                <div className={`w-11 h-6 rounded-full transition-colors duration-200 ${
-                  settings.projectUpdates ? 'bg-blue-600' : 'bg-gray-200'
-                }`}>
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-200 ${
-                    settings.projectUpdates ? 'translate-x-5' : 'translate-x-0'
-                  } mt-0.5 ml-0.5`}></div>
-                </div>
-              </label>
-            </div>
-
-            {/* Comments */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">Kommentare</h4>
-                <p className="text-sm text-gray-500">Benachrichtigungen bei neuen Kommentaren</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.comments}
-                  onChange={(e) => handleSettingChange('comments', e.target.checked)}
-                  className="sr-only"
-                />
-                <div className={`w-11 h-6 rounded-full transition-colors duration-200 ${
-                  settings.comments ? 'bg-blue-600' : 'bg-gray-200'
-                }`}>
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-200 ${
-                    settings.comments ? 'translate-x-5' : 'translate-x-0'
-                  } mt-0.5 ml-0.5`}></div>
-                </div>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Additional Information Section */}
-        <div className="border-t border-gray-200 pt-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">Über Browser-Benachrichtigungen</h4>
-            <div className="text-sm text-blue-800 space-y-2">
-              <p>
-                Browser-Benachrichtigungen erscheinen als Desktop-Benachrichtigungen, auch wenn die Anwendung nicht aktiv ist.
-              </p>
-              <p>
-                Sie können diese Berechtigung jederzeit in Ihren Browser-Einstellungen ändern oder über das Schloss-Symbol in der Adressleiste.
-              </p>
-            </div>
           </div>
         </div>
 

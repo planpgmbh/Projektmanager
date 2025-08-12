@@ -17,6 +17,4 @@ export interface NotificationSettings {
   emailNotifications: boolean;
   pushNotifications: boolean;
   taskAssignments: boolean;
-  projectUpdates: boolean;
-  comments: boolean;
 }
