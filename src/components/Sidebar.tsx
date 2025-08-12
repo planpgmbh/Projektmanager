@@ -21,12 +21,12 @@ import { signOut } from 'firebase/auth';
 import { Link, useLocation } from 'react-router-dom';
 import { useTimer } from '../context/TimerContext';
 import { useNotifications } from '../hooks/useNotifications';
+import { useOpenAssignedTasksCount } from '../hooks/useOpenAssignedTasksCount';
 import NotificationSidebar from './notifications/NotificationSidebar';
 
 const menuItems = [
   { icon: LayoutDashboard, text: 'Dashboard', path: '/dashboard' },
   { icon: Clock, text: 'Zeiterfassung', path: '/schedule' },
-  { icon: ListTodo, text: 'Meine Aufgaben', path: '/mytasks' },
   { icon: FolderKanban, text: 'Projekte', path: '/projects' },
   { icon: Building2, text: 'Kunden', path: '/customers' },
   { icon: FileText, text: 'Angebote', path: '/orders' },
@@ -43,6 +43,7 @@ function Sidebar() {
   const location = useLocation();
   const { isTimerActive } = useTimer();
   const { hasUnread, unreadCount } = useNotifications();
+  const { openTasksCount } = useOpenAssignedTasksCount();
 
   const handleLogout = () => {
     signOut(auth);
@@ -185,6 +186,44 @@ function Sidebar() {
                 <span className="sr-only">Benachrichtigungen</span>
               )}
             </button>
+
+            {/* My Tasks Navigation Item - Second Position */}
+            <Link
+              to="/mytasks"
+              className={`relative flex items-center py-4 ${
+                effectiveIsExpanded ? 'px-6' : 'justify-center'
+              } ${
+                location.pathname === '/mytasks'
+                  ? 'text-[#F5F4F3] bg-white/10' 
+                  : 'text-[#F5F4F3]/70 hover:text-[#F5F4F3] hover:bg-white/5'
+              } ${
+                openTasksCount > 0 ? 'text-blue-400' : ''
+              }`}
+            >
+              {/* Blue indicator bar when open tasks are present */}
+              {openTasksCount > 0 && (
+                <div className="absolute left-0 w-1 h-8 bg-blue-500 rounded-r-full" />
+              )}
+              
+              <div className="relative">
+                <ListTodo className={`h-5 w-5 flex-shrink-0 stroke-[1.25] ${
+                  openTasksCount > 0 ? 'text-blue-500' : ''
+                }`} />
+                {openTasksCount > 0 && (
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center font-medium">
+                    {openTasksCount > 9 ? '9+' : openTasksCount}
+                  </div>
+                )}
+              </div>
+              {(effectiveIsExpanded || isMobileMenuOpen) && (
+                <span className="ml-4 text-sm font-medium">
+                  Meine Aufgaben
+                </span>
+              )}
+              {!effectiveIsExpanded && !isMobileMenuOpen && (
+                <span className="sr-only">Meine Aufgaben</span>
+              )}
+            </Link>
 
             {/* Regular Menu Items */}
             {menuItems.map((item, index) => {
