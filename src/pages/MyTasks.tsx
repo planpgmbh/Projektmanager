@@ -413,8 +413,8 @@ function MyTasks() {
             bValue = b.customerName;
             break;
           case 'date':
-            aValue = a.date ? new Date(a.date).getTime() : 0;
-            bValue = b.date ? new Date(b.date).getTime() : 0;
+            aValue = a.date ? new Date(a.date).getTime() : Infinity;
+            bValue = b.date ? new Date(b.date).getTime() : Infinity;
             break;
           case 'totalEffort':
             aValue = a.totalEffort;
