@@ -23,28 +23,54 @@ function TaskDatePickerPopup({
   const [selectedDueDate, setSelectedDueDate] = useState<Date | null>(
     initialDueDate ? new Date(initialDueDate) : null
   );
-  const [activeTab, setActiveTab] = useState<'start' | 'due'>('start');
 
   const handleSave = () => {
     onSave(selectedStartDate, selectedDueDate);
     onClose();
   };
 
-  const handleDateChange = (date: Date | null) => {
-    if (activeTab === 'start') {
-      setSelectedStartDate(date);
+  const handleDateChange = (dates: [Date | null, Date | null] | null) => {
+    if (dates) {
+      const [start, end] = dates;
+      setSelectedStartDate(start);
+      setSelectedDueDate(end);
     } else {
-      setSelectedDueDate(date);
+      setSelectedStartDate(null);
+      setSelectedDueDate(null);
     }
   };
 
-  const getSelectedDate = () => {
-    return activeTab === 'start' ? selectedStartDate : selectedDueDate;
+  const handleClearDates = () => {
+    setSelectedStartDate(null);
+    setSelectedDueDate(null);
+  };
+
+  const formatDateRange = () => {
+    if (!selectedStartDate && !selectedDueDate) {
+      return 'Termine festlegen';
+    }
+    
+    const formatDate = (date: Date) => {
+      return new Intl.DateTimeFormat('de-DE', {
+        day: '2-digit',
+        month: 'short'
+      }).format(date);
+    };
+
+    if (selectedStartDate && selectedDueDate) {
+      return `${formatDate(selectedStartDate)} - ${formatDate(selectedDueDate)}`;
+    } else if (selectedStartDate) {
+      return `Ab ${formatDate(selectedStartDate)}`;
+    } else if (selectedDueDate) {
+      return `Bis ${formatDate(selectedDueDate)}`;
+    }
+    
+    return 'Termine festlegen';
   };
 
   return (
     <Popup
-      title="Termine festlegen"
+      title={formatDateRange()}
       onClose={onClose}
       maxWidth="md"
       footer={
@@ -59,48 +85,57 @@ function TaskDatePickerPopup({
       }
     >
       <div className="space-y-4">
-        {/* Tab Buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => setActiveTab('start')}
-            className={`px-4 py-2 text-sm font-medium rounded-md border transition-colors ${
-              activeTab === 'start'
-                ? 'bg-blue-50 border-blue-200 text-blue-700'
-                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            Startdatum
-          </button>
-          <button
-            onClick={() => setActiveTab('due')}
-            className={`px-4 py-2 text-sm font-medium rounded-md border transition-colors ${
-              activeTab === 'due'
-                ? 'bg-blue-50 border-blue-200 text-blue-700'
-                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            Fälligkeitsdatum
-          </button>
+        {/* Instructions */}
+        <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-md">
+          <p className="font-medium mb-1">So wählen Sie einen Zeitraum aus:</p>
+          <ul className="text-xs space-y-1">
+            <li>• Klicken Sie auf das Startdatum</li>
+            <li>• Klicken Sie auf das Enddatum (oder das gleiche Datum für einen Tag)</li>
+            <li>• Der ausgewählte Zeitraum wird blau hervorgehoben</li>
+          </ul>
         </div>
 
-        {/* Date Picker */}
+        {/* Date Range Picker */}
         <div className="flex justify-center">
           <DatePicker
-            selected={getSelectedDate()}
+            selected={selectedStartDate}
             onChange={handleDateChange}
+            startDate={selectedStartDate}
+            endDate={selectedDueDate}
+            selectsRange
             inline
             dateFormat="dd.MM.yyyy"
-            className="task-date-picker"
+            className="task-date-range-picker"
+            monthsShown={1}
           />
         </div>
 
-        {/* Clear Date Button */}
+        {/* Selected Range Display */}
+        {(selectedStartDate || selectedDueDate) && (
+          <div className="bg-gray-50 p-3 rounded-md">
+            <div className="text-sm font-medium text-gray-900 mb-2">Ausgewählter Zeitraum:</div>
+            <div className="space-y-1 text-sm text-gray-700">
+              {selectedStartDate && (
+                <div>
+                  <span className="font-medium">Startdatum:</span> {selectedStartDate.toLocaleDateString('de-DE')}
+                </div>
+              )}
+              {selectedDueDate && (
+                <div>
+                  <span className="font-medium">Fälligkeitsdatum:</span> {selectedDueDate.toLocaleDateString('de-DE')}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Clear Dates Button */}
         <div className="flex justify-center">
           <button
-            onClick={() => handleDateChange(null)}
+            onClick={handleClearDates}
             className="text-sm text-gray-500 hover:text-gray-700 underline"
           >
-            {activeTab === 'start' ? 'Startdatum entfernen' : 'Fälligkeitsdatum entfernen'}
+            Termine entfernen
           </button>
         </div>
       </div>
