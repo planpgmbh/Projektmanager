@@ -1,14 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ListTodo, ChevronDown, ChevronUp, X, Calendar } from 'lucide-react';
+import { ListTodo, ChevronDown, ChevronUp, X, Calendar, Clock } from 'lucide-react';
 import { collection, query, onSnapshot, where, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuthState } from '../hooks/useAuthState';
+import { useProjectsData } from '../hooks/useProjectsData';
+import { usePriceItemsData } from '../hooks/usePriceItemsData';
+import { useTimeEntries } from '../hooks/useTimeEntries';
+import { useActiveTimer } from '../hooks/useActiveTimer';
 import Sidebar from '../components/Sidebar';
 import PageHeader from '../components/PageHeader';
 import { SearchBar } from '../components/ui/SearchBar';
 import { Button } from '../components/ui/Button';
 import { Dropdown } from '../components/ui/Dropdown';
 import { BudgetBar } from '../components/ui/BudgetBar';
+import AddTimeEntryPopup from '../components/timeTracking/AddTimeEntryPopup';
 
 interface Task {
   id: string;
@@ -97,10 +102,6 @@ const DUE_DATE_OPTIONS = [
 function MyTasks() {
   const { user } = useAuthState();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
-  const [basicPriceItems, setBasicPriceItems] = useState<PriceItem[]>([]);
-  const [customerPricelists, setCustomerPricelists] = useState<{ [customerId: string]: PriceItem[] }>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -114,6 +115,33 @@ function MyTasks() {
   
   // Track if user has manually interacted with filters
   const [hasUserInteractedWithFilters, setHasUserInteractedWithFilters] = useState(false);
+
+  // Time tracking states
+  const [showAddTimeEntryPopup, setShowAddTimeEntryPopup] = useState(false);
+  const [preselectedEntryData, setPreselectedEntryData] = useState<{
+    projectId: string;
+    taskId: string;
+  } | null>(null);
+
+  // Use hooks for data management
+  const {
+    projects,
+    allTasks,
+    customerPricelists
+  } = useProjectsData();
+
+  const {
+    priceItems: basicPriceItems
+  } = usePriceItemsData();
+
+  const {
+    timeEntries,
+    addTimeEntry
+  } = useTimeEntries();
+
+  const {
+    createTimerEntry
+  } = useActiveTimer(timeEntries, () => Promise.resolve());
 
   const tabs = [
     {
@@ -232,43 +260,7 @@ function MyTasks() {
       return;
     }
 
-    // Fetch all projects
-    const projectsQuery = query(collection(db, 'projects'));
-    const unsubscribeProjects = onSnapshot(projectsQuery, (snapshot) => {
-      const projectsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Project[];
-      setProjects(projectsData);
-    });
-
-    // Fetch all time entries
-    const timeEntriesQuery = query(collection(db, 'timeEntries'));
-    const unsubscribeTimeEntries = onSnapshot(timeEntriesQuery, (snapshot) => {
-      const timeEntriesData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as TimeEntry[];
-      setTimeEntries(timeEntriesData);
-    });
-
-    // Fetch basic price items
-    const basicPriceItemsQuery = query(collection(db, 'settings/basicpricelist/priceitems'));
-    const unsubscribeBasicPriceItems = onSnapshot(basicPriceItemsQuery, (snapshot) => {
-      const basicPriceItemsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as PriceItem[];
-      setBasicPriceItems(basicPriceItemsData);
-    });
-
     setIsLoading(false);
-
-    return () => {
-      unsubscribeProjects();
-      unsubscribeTimeEntries();
-      unsubscribeBasicPriceItems();
-    };
   }, [user]);
 
   // Fetch tasks from all projects where user is involved
@@ -315,36 +307,6 @@ function MyTasks() {
   }, [user, projects]);
 
   // Fetch customer-specific pricelists
-  useEffect(() => {
-    if (projects.length === 0) return;
-
-    const unsubscribers: (() => void)[] = [];
-    const uniqueCustomerIds = [...new Set(projects.map(p => p.customerId).filter(Boolean))];
-
-    uniqueCustomerIds.forEach(customerId => {
-      const customerPricelistQuery = query(collection(db, `clients/${customerId}/pricelist`));
-      
-      const unsubscribe = onSnapshot(customerPricelistQuery, (snapshot) => {
-        const customerPricelistData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as PriceItem[];
-        
-        setCustomerPricelists(prev => ({
-          ...prev,
-          [customerId]: customerPricelistData
-        }));
-      }, () => {
-        console.log(`No customer-specific pricelist found for customer ${customerId}`);
-      });
-
-      unsubscribers.push(unsubscribe);
-    });
-
-    return () => {
-      unsubscribers.forEach(unsubscribe => unsubscribe());
-    };
-  }, [projects]);
 
   // Process tasks with project and customer information
   const tasksWithDetails = useMemo(() => {
@@ -525,6 +487,33 @@ function MyTasks() {
 
   const handleRowClick = (task: TaskWithDetails) => {
     window.location.href = `/projects/${task.projectId}?tab=tasks`;
+  };
+
+  const handleTimeTrackingClick = (task: TaskWithDetails, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row click
+    setPreselectedEntryData({
+      projectId: task.projectId,
+      taskId: task.id
+    });
+    setShowAddTimeEntryPopup(true);
+  };
+
+  const handleAddTimeEntry = async (newEntry: any) => {
+    try {
+      await addTimeEntry(newEntry);
+      setShowAddTimeEntryPopup(false);
+    } catch (err) {
+      console.error('Error adding time entry:', err);
+    }
+  };
+
+  const handleStartTimer = async (timerEntry: any) => {
+    try {
+      await createTimerEntry(timerEntry, addTimeEntry);
+      setShowAddTimeEntryPopup(false);
+    } catch (err) {
+      console.error('Error starting timer:', err);
+    }
   };
 
   const getSortIcon = (field: SortState['field']) => {
@@ -736,6 +725,9 @@ function MyTasks() {
                         {getSortIcon('totalEffort')}
                       </button>
                     </th>
+                    <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                      ZEITERFASSUNG
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -794,13 +786,23 @@ function MyTasks() {
                             />
                           </div>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center w-32">
+                          <Button
+                            variant="secondary"
+                            icon={Clock}
+                            onClick={(e) => handleTimeTrackingClick(task, e)}
+                            className="text-xs px-2 py-1 h-8"
+                          >
+                            Zeit
+                          </Button>
+                        </td>
                       </tr>
                     );
                   })}
                   {filteredAndSortedTasks.length === 0 && (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         className="px-6 py-8 text-center text-sm text-gray-500 bg-gray-50"
                       >
                         {!user ? 'Bitte melden Sie sich an, um Ihre Aufgaben zu sehen' : 'Keine Aufgaben gefunden'}
@@ -813,6 +815,23 @@ function MyTasks() {
           </div>
         </div>
       </div>
+
+      {showAddTimeEntryPopup && (
+        <AddTimeEntryPopup
+          selectedDate={new Date()}
+          projects={projects}
+          allTasks={allTasks}
+          priceItems={basicPriceItems}
+          customerPricelists={customerPricelists}
+          preselectedEntryData={preselectedEntryData}
+          onClose={() => {
+            setShowAddTimeEntryPopup(false);
+            setPreselectedEntryData(null);
+          }}
+          onSave={handleAddTimeEntry}
+          onStartTimer={handleStartTimer}
+        />
+      )}
     </div>
   );
 }

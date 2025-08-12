@@ -45,6 +45,10 @@ interface AddTimeEntryPopupProps {
   allTasks: { [projectId: string]: Task[] };
   priceItems: PriceItem[];
   customerPricelists: { [customerId: string]: PriceItem[] };
+  preselectedEntryData?: {
+    projectId: string;
+    taskId: string;
+  } | null;
   onClose: () => void;
   onSave: (entry: Omit<TimeEntry, 'id'>) => Promise<void>;
   onStartTimer: (entry: Omit<TimeEntry, 'id' | 'hours'>) => Promise<void>;
@@ -56,6 +60,7 @@ function AddTimeEntryPopup({
   allTasks,
   priceItems,
   customerPricelists,
+  preselectedEntryData,
   onClose,
   onSave,
   onStartTimer
@@ -72,6 +77,17 @@ function AddTimeEntryPopup({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize form with preselected data
+  useEffect(() => {
+    if (preselectedEntryData) {
+      setFormData(prev => ({
+        ...prev,
+        projectId: preselectedEntryData.projectId,
+        taskId: preselectedEntryData.taskId
+      }));
+    }
+  }, [preselectedEntryData]);
 
   // Filter projects to only show those where the current user is involved AND status is active
   const userProjects = React.useMemo(() => {
