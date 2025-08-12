@@ -1,10 +1,28 @@
 services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: backend_projects
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    networks:
+      - proxy
+      - services
+    ports:
+      - "3000:3000"
+
   www_projects:
     build:
       context: .
       dockerfile: dockerfile
     container_name: www_projects
     restart: unless-stopped
+    depends_on:
+      - backend
     labels:
       - traefik.enable=true
       - traefik.docker.network=proxy
@@ -15,6 +33,7 @@ services:
       - traefik.http.routers.www_projects.tls.certresolver=letsencrypt
     networks:
       - proxy
+      - services
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       
