@@ -85,7 +85,7 @@ function TaskDatePickerPopup({
     <Popup
       title="Termine festlegen"
       onClose={onClose}
-      maxWidth="md"
+      maxWidth="lg"
       footer={
         <PopupFooter>
           <Button variant="secondary" onClick={onClose}>
@@ -114,7 +114,7 @@ function TaskDatePickerPopup({
               onClick={handleStartInputClick}
             >
               <div className="text-sm text-gray-900">
-                {selectedStartDate ? formatDateForInput(selectedStartDate) : '13/08/25'}
+                {selectedStartDate ? formatDateForInput(selectedStartDate) : 'Datum wählen'}
               </div>
               {selectedStartDate && (
                 <button
@@ -144,7 +144,7 @@ function TaskDatePickerPopup({
               onClick={handleEndInputClick}
             >
               <div className="text-sm text-gray-900">
-                {selectedDueDate ? formatDateForInput(selectedDueDate) : '17/08/25'}
+                {selectedDueDate ? formatDateForInput(selectedDueDate) : 'Datum wählen'}
               </div>
               {selectedDueDate && (
                 <button
@@ -161,8 +161,8 @@ function TaskDatePickerPopup({
           </div>
         </div>
 
-        {/* Calendar */}
-        <div className="flex justify-center">
+        {/* Calendar - Full Width */}
+        <div className="w-full">
           <DatePicker
             selected={selectedStartDate}
             onChange={handleDateChange}
@@ -171,7 +171,7 @@ function TaskDatePickerPopup({
             selectsRange
             inline
             dateFormat="dd.MM.yyyy"
-            className="airbnb-date-picker"
+            className="modern-date-picker w-full"
             monthsShown={1}
             showPopperArrow={false}
           />
