@@ -84,19 +84,9 @@ function TaskDatePickerPopup({
         </PopupFooter>
       }
     >
-      <div className="space-y-4">
-        {/* Instructions */}
-        <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-md">
-          <p className="font-medium mb-1">So wählen Sie einen Zeitraum aus:</p>
-          <ul className="text-xs space-y-1">
-            <li>• Klicken Sie auf das Startdatum</li>
-            <li>• Klicken Sie auf das Enddatum (oder das gleiche Datum für einen Tag)</li>
-            <li>• Der ausgewählte Zeitraum wird blau hervorgehoben</li>
-          </ul>
-        </div>
-
+      <div className="space-y-6">
         {/* Date Range Picker */}
-        <div className="flex justify-center">
+        <div className="w-full flex justify-center">
           <DatePicker
             selected={selectedStartDate}
             onChange={handleDateChange}
@@ -105,7 +95,7 @@ function TaskDatePickerPopup({
             selectsRange
             inline
             dateFormat="dd.MM.yyyy"
-            className="task-date-range-picker"
+            className="task-date-range-picker-modern"
             monthsShown={1}
           />
         </div>
