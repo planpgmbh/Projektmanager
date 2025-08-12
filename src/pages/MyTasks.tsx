@@ -698,7 +698,7 @@ function MyTasks() {
                 <thead>
                   <tr>
                     <th className="px-3 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
-                      STATUS
+                      
                     </th>
                     <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       <button
