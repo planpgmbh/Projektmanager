@@ -442,12 +442,3 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
 };
 
 export default ProjectDetailsTabTasks_Task;
-            </div>
-          )}
-        </div>
-      )}
-    </Draggable>
-  );
-};
-
-export default ProjectDetailsTabTasks_Task;
