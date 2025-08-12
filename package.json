@@ -6,8 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:backend": "tsc -p tsconfig.backend.json",
-    "start:backend": "node dist/backend/backend/src/server.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
