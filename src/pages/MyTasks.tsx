@@ -697,10 +697,10 @@ function MyTasks() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead>
                   <tr>
-                    <th className="px-3 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                    <th className="px-2 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
                       
                     </th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       <button
                         onClick={() => handleSortChange('name')}
                         className="group flex items-center gap-1 hover:text-gray-700 transition-colors"
@@ -749,20 +749,18 @@ function MyTasks() {
                         onClick={() => handleRowClick(task)}
                         className="cursor-pointer hover:bg-gray-50 transition-colors duration-150"
                       >
-                        <td className="px-3 py-4 whitespace-nowrap w-16">
-                          <div className="flex items-center justify-center">
-                            <input
-                              type="checkbox"
-                              checked={task.statusdone}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                handleTaskStatusToggle(task.id, task.projectId, e.target.checked);
-                              }}
-                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                          </div>
+                        <td className="px-2 py-4 whitespace-nowrap w-10 text-center">
+                          <input
+                            type="checkbox"
+                            checked={task.statusdone}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                              handleTaskStatusToggle(task.id, task.projectId, e.target.checked);
+                            }}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-3 py-4 whitespace-nowrap">
                           <div>
                             <div className="text-sm font-medium text-gray-900">{task.name}</div>
                             <div className="text-sm text-gray-500">{task.projectName}</div>
@@ -784,16 +782,14 @@ function MyTasks() {
                             <span className="text-gray-400">-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center justify-center">
-                            <div className="w-full max-w-[120px]">
-                              <BudgetBar
-                                totalValue={task.totalEffort}
-                                budget={task.budget_total}
-                                height="sm"
-                                showPlaceholder={true}
-                              />
-                            </div>
+                        <td className="px-6 py-4 whitespace-nowrap text-left">
+                          <div className="w-full max-w-[120px]">
+                            <BudgetBar
+                              totalValue={task.totalEffort}
+                              budget={task.budget_total}
+                              height="sm"
+                              showPlaceholder={true}
+                            />
                           </div>
                         </td>
                       </tr>
