@@ -316,7 +316,7 @@ function TaskDatePickerPopup({
             
             return (
               <button
-                className={`w-8 h-8 flex items-center justify-center cursor-pointer text-xs transition-colors duration-150 ${dayInfo.classes}`}
+                className={`w-6 h-6 flex items-center justify-center cursor-pointer text-xs transition-colors duration-150 ${dayInfo.classes}`}
                 onClick={() => handleDayClick(date)}
                 className={classes}
                 type="button"
