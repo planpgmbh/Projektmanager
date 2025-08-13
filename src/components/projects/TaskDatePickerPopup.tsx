@@ -237,7 +237,7 @@ function TaskDatePickerPopup({
     <Popup
       title="Termine festlegen"
       onClose={onClose}
-      maxWidth="md"
+      maxWidth="sm"
       footer={
         <PopupFooter>
           <Button variant="secondary" onClick={onClose}>
@@ -249,7 +249,7 @@ function TaskDatePickerPopup({
         </PopupFooter>
       }
     >
-      <div className="w-full min-w-[320px] max-w-[400px] mx-auto">
+      <div className="mx-auto">
         {/* Date Input Fields */}
         <div className="flex justify-between items-center gap-4 mb-4">
           {/* Start Date Input */}
@@ -331,7 +331,7 @@ function TaskDatePickerPopup({
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-0 mb-4">
+        <div className="grid grid-cols-7 gap-y-5 mb-4">
           {calendarDays.map((dayInfo, index) => {
             const { date, day, classes, isSelected, isStart } = dayInfo;
             
