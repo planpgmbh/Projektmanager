@@ -249,7 +249,7 @@ function TaskDatePickerPopup({
         </PopupFooter>
       }
     >
-      <div className="mx-auto max-w-[320px]">
+      <div className="mx-auto max-w-[300px]">
         {/* Date Input Fields */}
         <div className="flex justify-between items-center gap-4 mb-4">
           {/* Start Date Input */}
