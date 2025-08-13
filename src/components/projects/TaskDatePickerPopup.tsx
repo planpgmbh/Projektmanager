@@ -240,9 +240,9 @@ function TaskDatePickerPopup({
               onChange={handleStartInputChange}
               onFocus={handleStartInputFocus}
               placeholder="+ Startdatum"
-              className={`w-full h-8 px-3 pr-8 text-sm font-medium rounded-lg border-none bg-white text-gray-600 placeholder-gray-600 focus:outline-none ${
-                startDate ? 'border border-gray-300' : ''
-              } focus:border focus:border-gray-300 focus:shadow-inner`}
+              className={`w-full h-8 px-3 pr-8 text-sm font-medium rounded-md bg-white text-gray-600 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                startDate ? 'border border-gray-300' : 'border-none'
+              }`}
             />
             {startDate && (
               <button
@@ -263,9 +263,9 @@ function TaskDatePickerPopup({
               onChange={handleDueInputChange}
               onFocus={handleDueInputFocus}
               placeholder="Fälligkeitsdatum"
-              className={`w-full h-8 px-3 pr-8 text-sm font-medium rounded-lg border-none bg-white text-gray-600 placeholder-gray-600 focus:outline-none ${
-                dueDate ? 'border border-gray-300' : ''
-              } focus:border focus:border-gray-300 focus:shadow-inner`}
+              className={`w-full h-8 px-3 pr-8 text-sm font-medium rounded-md bg-white text-gray-600 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                dueDate ? 'border border-gray-300' : 'border-none'
+              }`}
             />
             {dueDate && (
               <button
