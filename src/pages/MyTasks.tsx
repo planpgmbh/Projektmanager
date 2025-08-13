@@ -414,10 +414,8 @@ function MyTasks() {
             break;
           case 'date':
             // Use dueDate for sorting, fallback to startDate, then Infinity for tasks without dates
-            aValue = task.dueDate ? new Date(task.dueDate).getTime() : 
-                     task.startDate ? new Date(task.startDate).getTime() : Infinity;
-            bValue = task.dueDate ? new Date(task.dueDate).getTime() : 
-                     task.startDate ? new Date(task.startDate).getTime() : Infinity;
+            aValue = a.date ? new Date(a.date).getTime() : Infinity;
+            bValue = b.date ? new Date(b.date).getTime() : Infinity;
             break;
           case 'totalEffort':
             aValue = a.totalEffort;
