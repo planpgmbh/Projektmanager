@@ -310,7 +310,7 @@ function TaskDatePickerPopup({
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-1 mb-4">
+        <div className="grid grid-cols-7 gap-y-0.5 gap-x-0 mb-4">
           {calendarDays.map((dayInfo, index) => {
             const { date, day, classes, isSelected, isStart } = dayInfo;
             
