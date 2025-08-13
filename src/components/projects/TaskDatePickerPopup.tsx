@@ -24,6 +24,14 @@ function TaskDatePickerPopup({
     initialDueDate ? new Date(initialDueDate) : null
   );
   const [selectingStart, setSelectingStart] = useState(false);
+  const dueDateInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Auto-focus due date input if no date is selected
+  useEffect(() => {
+    if (!initialStartDate && !initialDueDate && dueDateInputRef.current) {
+      dueDateInputRef.current.focus();
+    }
+  }, [initialStartDate, initialDueDate]);
 
   const DOW = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
@@ -231,9 +239,9 @@ function TaskDatePickerPopup({
     >
       <div className="w-full min-w-[320px] max-w-[400px] mx-auto">
         {/* Date Input Fields */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex justify-between items-center gap-4 mb-4">
           {/* Start Date Input */}
-          <div className="relative flex-1">
+          <div className="relative w-[150px]">
             <input
               type="text"
               value={toUserStr(startDate)}
@@ -256,8 +264,9 @@ function TaskDatePickerPopup({
           </div>
 
           {/* Due Date Input */}
-          <div className="relative flex-1">
+          <div className="relative w-[150px]">
             <input
+              ref={dueDateInputRef}
               type="text"
               value={toUserStr(dueDate)}
               onChange={handleDueInputChange}
