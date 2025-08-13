@@ -217,7 +217,7 @@ function TaskDatePickerPopup({
     <Popup
       title="Termine festlegen"
       onClose={onClose}
-      maxWidth="lg"
+      maxWidth="md"
       footer={
         <PopupFooter>
           <Button variant="secondary" onClick={onClose}>
@@ -229,7 +229,7 @@ function TaskDatePickerPopup({
         </PopupFooter>
       }
     >
-      <div className="w-full max-w-sm mx-auto">
+      <div className="w-full min-w-[320px] max-w-[400px] mx-auto">
         {/* Date Input Fields */}
         <div className="flex gap-2 mb-4">
           {/* Start Date Input */}
