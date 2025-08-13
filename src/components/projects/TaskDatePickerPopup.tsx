@@ -107,7 +107,7 @@ function TaskDatePickerPopup({
         classes += " text-gray-900";
       }
 
-      // Range styling
+      // Range and selection styling
       if (startDate && dueDate) {
         const between = isBetween(d, startDate, dueDate);
         if (between) {
@@ -124,10 +124,9 @@ function TaskDatePickerPopup({
             classes += " rounded-none";
           }
         }
-      } else if (isSelected) {
-        classes += " relative";
-      } else if (isStart) {
-        classes += " bg-blue-600 text-white";
+      } else if (isSelected || isStart) {
+        // Single date selection - always use blue background with white text
+        classes += " bg-blue-600 text-white rounded-full";
       }
 
       // Hover effect for non-selected days
@@ -139,8 +138,7 @@ function TaskDatePickerPopup({
         date: d,
         day: d.getDate(),
         classes,
-        isSelected,
-        isStart
+        isSelected: isSelected || isStart
       });
     }
 
@@ -318,10 +316,6 @@ function TaskDatePickerPopup({
                 type="button"
               >
                 {day}
-                {/* Selected day indicator */}
-                {isSelected && !isStart && !(startDate && dueDate && isBetween(date, startDate, dueDate)) && (
-                  <div className="absolute inset-0.5 border-2 border-blue-600 rounded-full pointer-events-none" />
-                )}
               </button>
             );
           })}
