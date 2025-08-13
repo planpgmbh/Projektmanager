@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Popup, PopupFooter } from '../ui/Popup';
 import { Button } from '../ui/Button';
 
@@ -53,10 +53,12 @@ function TaskDatePickerPopup({
   };
 
   const isSameDay = (a: Date | null, b: Date | null) => {
-    return a && b && 
-      a.getFullYear() === b.getFullYear() && 
-      a.getMonth() === b.getMonth() && 
-      a.getDate() === b.getDate();
+    if (!a || !b) return false;
+    const dateA = new Date(a);
+    const dateB = new Date(b);
+    dateA.setHours(0, 0, 0, 0);
+    dateB.setHours(0, 0, 0, 0);
+    return dateA.getTime() === dateB.getTime();
   };
 
   const isBetween = (date: Date, start: Date, end: Date) => {
@@ -106,53 +108,35 @@ function TaskDatePickerPopup({
     for (let i = 0; i < total; i++) {
       const d = addDays(start, i);
       const isMuted = d.getMonth() !== viewDate.getMonth();
-      const isSelected = isSameDay(d, dueDate);
       const isStart = startDate && isSameDay(d, startDate);
+      const isDue = dueDate && isSameDay(d, dueDate);
       
-      // Bestimme explizit die Styling-Eigenschaften basierend auf dem Status
-      let bgColor = 'bg-white';
-      let textColor = 'text-gray-900';
-      let borderRadius = 'rounded-full';
-      let hoverClasses = 'hover:bg-gray-100';
+      // Determine styling based on date status
+      let classes = 'aspect-square flex items-center justify-center cursor-pointer text-sm transition-colors duration-150';
       
-      // Prüfe zuerst auf Bereichsauswahl (hat Priorität)
-      if (startDate && dueDate && !isSameDay(startDate, dueDate)) { // Nur wenn es ein echter Bereich ist
-        const between = isBetween(d, startDate, dueDate);
-        if (between) {
-          bgColor = 'bg-blue-600';
-          textColor = 'text-white';
-          hoverClasses = 'hover:bg-blue-700';
-          
-          if (isSameDay(d, startDate)) {
-            borderRadius = 'rounded-l-full rounded-r-none';
-          } else if (isSameDay(d, dueDate)) {
-            borderRadius = 'rounded-r-full rounded-l-none';
-          } else {
-            borderRadius = 'rounded-none';
-          }
+      // Check for date range (highest priority)
+      if (startDate && dueDate && !isSameDay(startDate, dueDate) && isBetween(d, startDate, dueDate)) {
+        if (isStart) {
+          classes += ' bg-blue-600 text-white rounded-l-full rounded-r-none hover:bg-blue-700';
+        } else if (isDue) {
+          classes += ' bg-blue-600 text-white rounded-r-full rounded-l-none hover:bg-blue-700';
+        } else {
+          classes += ' bg-blue-600 text-white rounded-none hover:bg-blue-700';
         }
       }
-      // Dann prüfe auf Einzelauswahl (Start- oder Enddatum oder wenn Start- und Enddatum gleich sind)
-      else if (isSelected || isStart || (startDate && dueDate && isSameDay(startDate, dueDate) && isSameDay(d, startDate))) {
-        bgColor = 'bg-blue-600';
-        textColor = 'text-white';
-        borderRadius = 'rounded-full';
-        hoverClasses = 'hover:bg-blue-700';
+      // Check for single date selection
+      else if (isStart || isDue) {
+        classes += ' bg-blue-600 text-white rounded-full hover:bg-blue-700';
       }
-      
-      // Gedämpfte Tage (außerhalb des aktuellen Monats)
-      if (isMuted && bgColor === 'bg-white') {
-        textColor = 'text-gray-400';
+      // Default styling
+      else {
+        classes += isMuted ? ' text-gray-400 hover:bg-gray-100' : ' text-gray-900 hover:bg-gray-100';
       }
-      
-      // Zusammensetzen der finalen CSS-Klassen
-      const classes = `aspect-square flex items-center justify-center cursor-pointer text-sm border-none outline-none transition-colors duration-150 ${bgColor} ${textColor} ${borderRadius} ${hoverClasses}`;
 
       days.push({
         date: d,
         day: d.getDate(),
-        classes,
-        isSelected: isSelected || isStart || (startDate && dueDate && isBetween(d, startDate, dueDate))
+        classes
       });
     }
 
@@ -341,20 +325,16 @@ function TaskDatePickerPopup({
 
         {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-y-2 mb-4">
-          {calendarDays.map((dayInfo, index) => {
-            const { date, day, classes, isSelected, isStart } = dayInfo;
-            
-            return (
-              <button
-                key={index}
-                className={`aspect-square flex items-center justify-center cursor-pointer text-xs transition-colors duration-150 ${dayInfo.classes}`}
-                onClick={() => handleDayClick(date)}
-                type="button"
-              >
-                {day}
-              </button>
-            );
-          })}
+          {calendarDays.map((dayInfo, index) => (
+            <button
+              key={index}
+              className={dayInfo.classes}
+              onClick={() => handleDayClick(dayInfo.date)}
+              type="button"
+            >
+              {dayInfo.day}
+            </button>
+          ))}
         </div>
 
         {/* Clear Values Button */}
