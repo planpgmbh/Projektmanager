@@ -99,46 +99,52 @@ function TaskDatePickerPopup({
       const isSelected = isSameDay(d, dueDate);
       const isStart = startDate && isSameDay(d, startDate);
       
-      let classes = "aspect-square flex items-center justify-center rounded-full cursor-pointer text-sm bg-white border-none outline-none transition-colors duration-150";
+      // Bestimme explizit die Styling-Eigenschaften basierend auf dem Status
+      let bgColor = 'bg-white';
+      let textColor = 'text-gray-900';
+      let borderRadius = 'rounded-full';
+      let hoverClasses = 'hover:bg-gray-100';
       
-      if (isMuted) {
-        classes += " text-gray-400";
-      } else {
-        classes += " text-gray-900";
-      }
-
-      // Range and selection styling
+      // Prüfe zuerst auf Bereichsauswahl (hat Priorität)
       if (startDate && dueDate) {
         const between = isBetween(d, startDate, dueDate);
         if (between) {
-          classes += " bg-blue-600 text-white";
+          bgColor = 'bg-blue-600';
+          textColor = 'text-white';
+          hoverClasses = 'hover:bg-blue-700';
           
-          // Determine border radius for range
           if (isSameDay(d, startDate) && isSameDay(d, dueDate)) {
-            classes += " rounded-full"; // Single day selection
+            borderRadius = 'rounded-full'; // Einzeltag-Auswahl
           } else if (isSameDay(d, startDate)) {
-            classes += " rounded-l-full rounded-r-none";
+            borderRadius = 'rounded-l-full rounded-r-none';
           } else if (isSameDay(d, dueDate)) {
-            classes += " rounded-r-full rounded-l-none";
+            borderRadius = 'rounded-r-full rounded-l-none';
           } else {
-            classes += " rounded-none";
+            borderRadius = 'rounded-none';
           }
         }
-      } else if (isSelected || isStart) {
-        // Single date selection - always use blue background with white text
-        classes += " bg-blue-600 text-white rounded-full";
+      } 
+      // Dann prüfe auf Einzelauswahl (Start- oder Enddatum)
+      else if (isSelected || isStart) {
+        bgColor = 'bg-blue-600';
+        textColor = 'text-white';
+        borderRadius = 'rounded-full';
+        hoverClasses = 'hover:bg-blue-700';
       }
-
-      // Hover effect for non-selected days
-      if (!isSelected && !isStart && !(startDate && dueDate && isBetween(d, startDate, dueDate))) {
-        classes += " hover:bg-gray-100";
+      
+      // Gedämpfte Tage (außerhalb des aktuellen Monats)
+      if (isMuted && bgColor === 'bg-white') {
+        textColor = 'text-gray-400';
       }
+      
+      // Zusammensetzen der finalen CSS-Klassen
+      const classes = `aspect-square flex items-center justify-center cursor-pointer text-sm border-none outline-none transition-colors duration-150 ${bgColor} ${textColor} ${borderRadius} ${hoverClasses}`;
 
       days.push({
         date: d,
         day: d.getDate(),
         classes,
-        isSelected: isSelected || isStart
+        isSelected: isSelected || isStart || (startDate && dueDate && isBetween(d, startDate, dueDate))
       });
     }
 
