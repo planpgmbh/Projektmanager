@@ -31,6 +31,8 @@ function TaskDatePickerPopup({
     if (!initialStartDate && !initialDueDate && dueDateInputRef.current) {
       dueDateInputRef.current.focus();
     }
+    // Ensure we start with due date selection
+    setSelectingStart(false);
   }, [initialStartDate, initialDueDate]);
 
   const DOW = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -162,21 +164,22 @@ function TaskDatePickerPopup({
     if (startDate && dueDate && isSameDay(startDate, dueDate)) {
       setStartDate(null);
       setDueDate(null);
-      setSelectingStart(true); // Beginne erneut mit der Auswahl des Startdatums
+      setSelectingStart(false); // Beginne erneut mit der Auswahl des Fälligkeitsdatums
       return;
     }
 
-    // Wenn noch kein Startdatum ausgewählt ist oder das Fälligkeitsdatum bereits gesetzt ist,
-    // beginne eine neue Auswahl mit dem geklickten Datum als Startdatum.
-    if (!startDate || dueDate) {
-      setStartDate(clickedDate);
-      setDueDate(null);
-      setSelectingStart(false); // Nächster Klick ist für das Fälligkeitsdatum
-    } else {
-      // Wenn ein Startdatum ausgewählt ist und kein Fälligkeitsdatum,
-      // setze das geklickte Datum als Fälligkeitsdatum.
+    if (!selectingStart) {
+      // Wir wählen das Fälligkeitsdatum aus
       setDueDate(clickedDate);
-      setSelectingStart(false); // Auswahl abgeschlossen
+      if (!startDate) {
+        setSelectingStart(true); // Nächster Klick ist für das Startdatum
+      } else {
+        setSelectingStart(false); // Auswahl abgeschlossen, nächste Auswahl beginnt wieder mit Fälligkeitsdatum
+      }
+    } else {
+      // Wir wählen das Startdatum aus
+      setStartDate(clickedDate);
+      setSelectingStart(false); // Auswahl abgeschlossen, nächste Auswahl beginnt wieder mit Fälligkeitsdatum
     }
   };
 
@@ -192,6 +195,7 @@ function TaskDatePickerPopup({
     const d = parseUserStr(e.target.value);
     if (d) {
       setStartDate(d);
+      setSelectingStart(false); // Nächster Klick im Kalender soll Fälligkeitsdatum befüllen
     }
   };
 
@@ -199,6 +203,11 @@ function TaskDatePickerPopup({
     const d = parseUserStr(e.target.value);
     if (d) {
       setDueDate(d);
+      if (!startDate) {
+        setSelectingStart(true); // Nächster Klick im Kalender soll Startdatum befüllen
+      } else {
+        setSelectingStart(false); // Startdatum bereits gesetzt, nächster Klick soll wieder Fälligkeitsdatum befüllen
+      }
     }
   };
 
@@ -217,13 +226,13 @@ function TaskDatePickerPopup({
 
   const handleClearDue = () => {
     setDueDate(null);
-    setSelectingStart(false);
+    setSelectingStart(false); // Nächster Klick soll wieder Fälligkeitsdatum befüllen
   };
 
   const handleClearAll = () => {
     setStartDate(null);
     setDueDate(null);
-    setSelectingStart(false);
+    setSelectingStart(false); // Nächster Klick soll Fälligkeitsdatum befüllen
   };
 
   const handleSave = () => {
