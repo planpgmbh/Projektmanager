@@ -237,7 +237,7 @@ function TaskDatePickerPopup({
     <Popup
       title="Termine festlegen"
       onClose={onClose}
-      maxWidth="250px"
+      maxWidth="350px"
       footer={
         <PopupFooter>
           <Button variant="secondary" onClick={onClose}>
