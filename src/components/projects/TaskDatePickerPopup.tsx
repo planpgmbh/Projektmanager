@@ -241,7 +241,7 @@ function TaskDatePickerPopup({
         {/* Date Input Fields */}
         <div className="flex justify-between items-center gap-4 mb-4">
           {/* Start Date Input */}
-          <div className="relative w-[150px]">
+          <div className="relative w-[170px]">
             <input
               type="text"
               value={toUserStr(startDate)}
@@ -264,7 +264,7 @@ function TaskDatePickerPopup({
           </div>
 
           {/* Due Date Input */}
-          <div className="relative w-[150px]">
+          <div className="relative w-[170px]">
             <input
               ref={dueDateInputRef}
               type="text"
