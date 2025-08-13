@@ -331,14 +331,14 @@ function TaskDatePickerPopup({
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-y-1.5 gap-x-0 mb-4 justify-items-center">
+        <div className="grid grid-cols-7 gap-0 mb-4">
           {calendarDays.map((dayInfo, index) => {
             const { date, day, classes, isSelected, isStart } = dayInfo;
             
             return (
               <button
                 key={index}
-                className={`w-6 h-6 flex items-center justify-center cursor-pointer text-xs transition-colors duration-150 ${dayInfo.classes}`}
+                className={`aspect-square flex items-center justify-center cursor-pointer text-xs transition-colors duration-150 ${dayInfo.classes}`}
                 onClick={() => handleDayClick(date)}
                 type="button"
               >
