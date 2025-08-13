@@ -123,14 +123,14 @@ function TaskDatePickerPopup({
             classes += " rounded-none";
           }
         }
-      } else if (isSelectedStart) {
+      } else if (isStart) {
         classes += " bg-blue-600 text-white";
-      } else if (isSelectedDue) {
+      } else if (isSelected) {
         classes += " relative";
       }
 
       // Hover effect for non-range days
-      if (!isSelectedDue && !isSelectedStart && !(startDate && dueDate && isBetween(d, startDate, dueDate))) {
+      if (!isSelected && !isStart && !(startDate && dueDate && isBetween(d, startDate, dueDate))) {
         classes += " hover:bg-gray-100";
       }
 
