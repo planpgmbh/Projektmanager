@@ -99,7 +99,7 @@ function TaskDatePickerPopup({
       const isSelected = isSameDay(d, dueDate);
       const isStart = startDate && isSameDay(d, startDate);
       
-      let classes = "aspect-square flex items-center justify-center cursor-pointer text-sm bg-white border-none outline-none transition-colors duration-150 relative";
+      let classes = "aspect-square flex items-center justify-center rounded-full cursor-pointer text-sm bg-white border-none outline-none transition-colors duration-150";
       
       if (isMuted) {
         classes += " text-gray-400";
@@ -107,37 +107,40 @@ function TaskDatePickerPopup({
         classes += " text-gray-900";
       }
 
-      // Range and selection styling
+      // Range styling
       if (startDate && dueDate) {
         const between = isBetween(d, startDate, dueDate);
         if (between) {
           classes += " bg-blue-600 text-white";
           
+          // Determine border radius for range
           if (isSameDay(d, startDate) && isSameDay(d, dueDate)) {
-            classes += " rounded-full";
+            classes += " rounded-full"; // Single day selection
           } else if (isSameDay(d, startDate)) {
-            classes += " rounded-l-full";
+            classes += " rounded-l-full rounded-r-none";
           } else if (isSameDay(d, dueDate)) {
-            classes += " rounded-r-full";
+            classes += " rounded-r-full rounded-l-none";
           } else {
             classes += " rounded-none";
           }
         }
-      } else if (isSelectedStart) {
-        classes += " bg-blue-600 text-white";
-      } else if (isSelectedDue) {
+      } else if (isSelected) {
         classes += " relative";
+      } else if (isStart) {
+        classes += " bg-blue-600 text-white";
       }
 
-      // Hover effect for non-range days
-      if (!isSelectedDue && !isSelectedStart && !(startDate && dueDate && isBetween(d, startDate, dueDate))) {
+      // Hover effect for non-selected days
+      if (!isSelected && !isStart && !(startDate && dueDate && isBetween(d, startDate, dueDate))) {
         classes += " hover:bg-gray-100";
       }
 
       days.push({
         date: d,
         day: d.getDate(),
-        classes
+        classes,
+        isSelected,
+        isStart
       });
     }
 
@@ -210,7 +213,7 @@ function TaskDatePickerPopup({
     <Popup
       title="Termine festlegen"
       onClose={onClose}
-      maxWidth="xl"
+      maxWidth="lg"
       footer={
         <PopupFooter>
           <Button variant="secondary" onClick={onClose}>
@@ -222,7 +225,7 @@ function TaskDatePickerPopup({
         </PopupFooter>
       }
     >
-      <div className="w-full" style={{ width: '450px' }}>
+      <div className="w-full max-w-sm mx-auto">
         {/* Date Input Fields */}
         <div className="flex gap-2 mb-4">
           {/* Start Date Input */}
@@ -303,7 +306,7 @@ function TaskDatePickerPopup({
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-0 mb-4">
+        <div className="grid grid-cols-7 gap-1 mb-4">
           {calendarDays.map((dayInfo, index) => {
             const { date, day, classes, isSelected, isStart } = dayInfo;
             
