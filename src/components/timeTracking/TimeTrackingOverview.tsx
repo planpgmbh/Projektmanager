@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, Plus, PlayCircle, StopCircle, Clock, Home } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import { useTimeEntries } from '../../hooks/useTimeEntries';
