@@ -73,6 +73,19 @@ function TimeTrackingOverview() {
   const isLoading = timeEntriesLoading || projectsLoading || priceItemsLoading;
   const error = timeEntriesError || projectsError || priceItemsError;
 
+  // Get unique customers from projects
+  const uniqueCustomers = useMemo(() => {
+    const customerMap = new Map();
+    projects.forEach(project => {
+      if (project.customerId && project.customerName) {
+        customerMap.set(project.customerId, {
+          id: project.customerId,
+          name: project.customerName
+        });
+      }
+    });
+    return Array.from(customerMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [projects]);
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('de-DE', {
       weekday: 'long',
@@ -137,6 +150,18 @@ function TimeTrackingOverview() {
     }));
   };
 
+  const handleCustomerChange = async (entryId: string, newCustomerId: string) => {
+    try {
+      await updateTimeEntry(entryId, {
+        projectId: '',
+        taskId: '',
+        priceItemId: ''
+      });
+      handleDropdownOpenChange(`customer-${entryId}`, false);
+    } catch (err) {
+      console.error('Error updating customer:', err);
+    }
+  };
   const handleProjectChange = async (entryId: string, newProjectId: string) => {
     try {
       await updateTimeEntry(entryId, {
@@ -351,7 +376,31 @@ function TimeTrackingOverview() {
                 {/* Spalte 1: Kunde (1/4) */}
                 <div className="flex items-center">
                   <div className="text-sm font-semibold text-black">
-                    {getCustomerName(entry.projectId)}
+                    <Dropdown
+                      trigger={
+                        <span className="cursor-pointer hover:text-blue-600">
+                          {getCustomerName(entry.projectId)}
+                        </span>
+                      }
+                      isOpen={openDropdowns[`customer-${entry.id}`] || false}
+                      onOpenChange={(isOpen) => handleDropdownOpenChange(`customer-${entry.id}`, isOpen)}
+                      minWidth="200px"
+                      maxWidth="300px"
+                    >
+                      <div className="py-1">
+                        {uniqueCustomers.map((customer) => (
+                          <button
+                            key={customer.id}
+                            onClick={() => handleCustomerChange(entry.id, customer.id)}
+                            className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 block ${
+                              customer.id === entry.projectId ? 'font-semibold text-gray-900' : 'text-gray-700'
+                            }`}
+                          >
+                            {customer.name}
+                          </button>
+                        ))}
+                      </div>
+                    </Dropdown>
                   </div>
                 </div>
 
