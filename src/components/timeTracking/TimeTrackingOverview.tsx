@@ -8,7 +8,6 @@ import { useInlineEdit } from '../../hooks/useInlineEdit';
 import { useActiveTimer } from '../../hooks/useActiveTimer';
 import { Button } from '../ui/Button';
 import { Dropdown } from '../ui/Dropdown';
-import EditTimeEntryProjectCustomerPopup from './EditTimeEntryProjectCustomerPopup';
 import AddTimeEntryPopup from './AddTimeEntryPopup';
 import ItemActionsMenu from '../ui/ItemActionsMenu';
 import { parseAndRoundTimeInput, formatTimeDisplay } from '../../utils/time';
@@ -18,9 +17,6 @@ function TimeTrackingOverview() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isAddingTimeEntry, setIsAddingTimeEntry] = useState(false);
-  const [showEditTimeEntryProjectCustomerPopup, setShowEditTimeEntryProjectCustomerPopup] = useState(false);
-  const [selectedEntryForEdit, setSelectedEntryForEdit] = useState<any>(null);
-  const [customers, setCustomers] = useState<any[]>([]);
   const [openDropdowns, setOpenDropdowns] = useState<{[key: string]: boolean}>({});
 
   // Custom hooks
@@ -76,28 +72,6 @@ function TimeTrackingOverview() {
 
   const isLoading = timeEntriesLoading || projectsLoading || priceItemsLoading;
   const error = timeEntriesError || projectsError || priceItemsError;
-
-  // Fetch customers for the edit popup
-  React.useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const response = await fetch('/api/customers');
-        if (!response.ok) {
-          throw new Error(`Fehler beim Laden der Kunden: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const organizations = data.objects.filter((contact: any) => 
-          contact.category?.id === '3' || contact.category?.id === 3
-        );
-        setCustomers(organizations);
-      } catch (err) {
-        console.error('Error fetching customers:', err);
-      }
-    };
-
-    fetchCustomers();
-  }, []);
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('de-DE', {
@@ -252,22 +226,6 @@ function TimeTrackingOverview() {
     }
   };
 
-  const handleCustomerClick = (entry: any) => {
-    setSelectedEntryForEdit(entry);
-    setShowEditTimeEntryProjectCustomerPopup(true);
-  };
-
-  const handleEditTimeEntryProjectCustomer = async (entryId: string, updates: { projectId: string; taskId: string; priceItemId: string }) => {
-    try {
-      await updateTimeEntry(entryId, updates);
-      setShowEditTimeEntryProjectCustomerPopup(false);
-      setSelectedEntryForEdit(null);
-    } catch (err) {
-      console.error('Error updating time entry project/customer:', err);
-      throw err;
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -392,11 +350,7 @@ function TimeTrackingOverview() {
               >
                 {/* Spalte 1: Kunde (1/4) */}
                 <div className="flex items-center">
-                  <div 
-                    className="text-sm font-semibold text-black cursor-pointer hover:text-blue-600 transition-colors duration-150"
-                    onClick={() => handleCustomerClick(entry)}
-                    title="Kunde ändern"
-                  >
+                  <div className="text-sm font-semibold text-black">
                     {getCustomerName(entry.projectId)}
                   </div>
                 </div>
@@ -426,10 +380,7 @@ function TimeTrackingOverview() {
                                 project.id === entry.projectId ? 'font-semibold text-gray-900' : 'text-gray-700'
                               }`}
                             >
-                              <div>
-                                <div className="font-medium">{project.name}</div>
-                                <div className="text-xs text-gray-500">{project.customerName}</div>
-                              </div>
+                              {project.name}
                             </button>
                           ))}
                         </div>
@@ -623,20 +574,6 @@ function TimeTrackingOverview() {
           onClose={() => setIsAddingTimeEntry(false)}
           onSave={handleAddTimeEntry}
           onStartTimer={handleStartTimer}
-        />
-      )}
-
-      {showEditTimeEntryProjectCustomerPopup && selectedEntryForEdit && (
-        <EditTimeEntryProjectCustomerPopup
-          timeEntry={selectedEntryForEdit}
-          projects={projects}
-          allTasks={allTasks}
-          customers={customers}
-          onClose={() => {
-            setShowEditTimeEntryProjectCustomerPopup(false);
-            setSelectedEntryForEdit(null);
-          }}
-          onSave={handleEditTimeEntryProjectCustomer}
         />
       )}
     </>
