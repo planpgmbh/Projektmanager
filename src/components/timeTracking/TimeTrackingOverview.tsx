@@ -380,7 +380,10 @@ function TimeTrackingOverview() {
                                 project.id === entry.projectId ? 'font-semibold text-gray-900' : 'text-gray-700'
                               }`}
                             >
-                              {project.name}
+                              <div>
+                                <div className="font-medium">{project.name}</div>
+                                <div className="text-xs text-gray-500">{project.customerName}</div>
+                              </div>
                             </button>
                           ))}
                         </div>
