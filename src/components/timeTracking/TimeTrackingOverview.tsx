@@ -152,7 +152,12 @@ function TimeTrackingOverview() {
 
   const handleCustomerChange = async (entryId: string, newCustomerId: string) => {
     try {
+      // Find the selected customer to get the customer name
+      const selectedCustomer = uniqueCustomers.find(c => c.id === newCustomerId);
+      if (!selectedCustomer) return;
+
       await updateTimeEntry(entryId, {
+        customerId: newCustomerId, // Store the customer ID directly
         projectId: '',
         taskId: '',
         priceItemId: ''
@@ -388,7 +393,10 @@ function TimeTrackingOverview() {
                       maxWidth="300px"
                     >
                       <div className="py-1">
-                        {uniqueCustomers.map((customer) => (
+                        {entry.customerId 
+                          ? uniqueCustomers.find(c => c.id === entry.customerId)?.name || 'Unbekannter Kunde'
+                          : getCustomerName(entry.projectId)
+                        }
                           <button
                             key={customer.id}
                             onClick={() => handleCustomerChange(entry.id, customer.id)}
