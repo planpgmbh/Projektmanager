@@ -70,6 +70,7 @@ export interface Project {
   description?: string;
   status: string;
   involvedUserIds?: string[];
+  PMUserIDs?: string[];
   totalBudget?: number;
   workflow?: ProjectWorkflow;
 }

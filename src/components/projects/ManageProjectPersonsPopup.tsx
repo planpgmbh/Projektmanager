@@ -9,7 +9,7 @@ interface ManageProjectPersonsPopupProps {
   project: Project;
   allUsers: User[];
   onClose: () => void;
-  onSave: (updatedUserIds: string[]) => Promise<void>;
+  onSave: (updatedInvolvedUserIds: string[], updatedPMUserIds: string[]) => Promise<void>;
 }
 
 function ManageProjectPersonsPopup({
@@ -22,36 +22,41 @@ function ManageProjectPersonsPopup({
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>(
     project.involvedUserIds || []
   );
+  const [selectedPMUserIds, setSelectedPMUserIds] = useState<string[]>(
+    project.PMUserIDs || []
+  );
   const [isLoading, setIsLoading] = useState(false);
 
-  const getRoleBadgeColor = (role: string) => {
-    const colors = {
-      admin: 'bg-purple-100 text-purple-800',
-      projektmanager: 'bg-blue-100 text-blue-800',
-      nutzer: 'bg-green-100 text-green-800',
-      buchhaltung: 'bg-yellow-100 text-yellow-800',
-      inaktiv: 'bg-gray-100 text-gray-800'
-    };
-    return colors[role as keyof typeof colors] || colors.inaktiv;
-  };
-
-  const getRoleLabel = (role: string) => {
-    const labels = {
-      admin: 'Administrator',
-      projektmanager: 'Projektmanager',
-      nutzer: 'Nutzer',
-      buchhaltung: 'Buchhaltung',
-      inaktiv: 'Inaktiv'
-    };
-    return labels[role as keyof typeof labels] || role;
-  };
-
   const handleUserToggle = (userId: string) => {
+    const newSelectedUserIds = selectedUserIds.includes(userId)
+      ? selectedUserIds.filter(id => id !== userId)
+      : [...selectedUserIds, userId];
+    
     setSelectedUserIds(prev => 
       prev.includes(userId)
         ? prev.filter(id => id !== userId)
         : [...prev, userId]
     );
+    
+    // If user is removed from involved, also remove from PM
+    if (!newSelectedUserIds.includes(userId)) {
+      setSelectedPMUserIds(prev => prev.filter(id => id !== userId));
+    }
+  };
+
+  const handlePMToggle = (userId: string) => {
+    const isPMSelected = selectedPMUserIds.includes(userId);
+    
+    if (isPMSelected) {
+      // Remove from PM list
+      setSelectedPMUserIds(prev => prev.filter(id => id !== userId));
+    } else {
+      // Add to PM list and ensure user is also involved
+      setSelectedPMUserIds(prev => [...prev, userId]);
+      if (!selectedUserIds.includes(userId)) {
+        setSelectedUserIds(prev => [...prev, userId]);
+      }
+    }
   };
 
   const handleSave = async () => {
@@ -62,7 +67,7 @@ function ManageProjectPersonsPopup({
       const removedUserIds = currentUserIds.filter(id => !selectedUserIds.includes(id));
 
       // Save the changes first
-      await onSave(selectedUserIds);
+      await onSave(selectedUserIds, selectedPMUserIds);
 
       // Create notifications for added users
       if (user && addedUserIds.length > 0) {
@@ -104,7 +109,9 @@ function ManageProjectPersonsPopup({
 
   const hasChanges = () => {
     const currentIds = project.involvedUserIds || [];
-    return JSON.stringify(selectedUserIds.sort()) !== JSON.stringify(currentIds.sort());
+    const currentPMIds = project.PMUserIDs || [];
+    return JSON.stringify(selectedUserIds.sort()) !== JSON.stringify(currentIds.sort()) ||
+           JSON.stringify(selectedPMUserIds.sort()) !== JSON.stringify(currentPMIds.sort());
   };
 
   // Filter out inactive users and sort by role and name
@@ -161,27 +168,49 @@ function ManageProjectPersonsPopup({
             activeUsers.map((user) => (
               <div
                 key={user.id}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
               >
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id={`user-${user.id}`}
-                    checked={selectedUserIds.includes(user.id)}
-                    onChange={() => handleUserToggle(user.id)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor={`user-${user.id}`} className="cursor-pointer">
-                    <div className="font-medium text-gray-900">
-                      {user.firstName && user.lastName 
-                        ? `${user.firstName} ${user.lastName}`
-                        : user.email}
-                    </div>
-                  </label>
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">
+                    {user.firstName && user.lastName 
+                      ? `${user.firstName} ${user.lastName}`
+                      : user.email}
+                  </div>
+                  <div className="text-sm text-gray-500">{user.email}</div>
                 </div>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleBadgeColor(user.role)}`}>
-                  {getRoleLabel(user.role)}
-                </span>
+                
+                <div className="flex items-center space-x-6">
+                  {/* Beteiligt Checkbox */}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`involved-${user.id}`}
+                      checked={selectedUserIds.includes(user.id)}
+                      onChange={() => handleUserToggle(user.id)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor={`involved-${user.id}`} className="text-sm text-gray-700 cursor-pointer">
+                      Beteiligt
+                    </label>
+                  </div>
+                  
+                  {/* Projektmanager Checkbox */}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`pm-${user.id}`}
+                      checked={selectedPMUserIds.includes(user.id)}
+                      onChange={() => handlePMToggle(user.id)}
+                      disabled={!selectedUserIds.includes(user.id)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
+                    />
+                    <label htmlFor={`pm-${user.id}`} className={`text-sm cursor-pointer ${
+                      selectedUserIds.includes(user.id) ? 'text-gray-700' : 'text-gray-400'
+                    }`}>
+                      Projektmanager
+                    </label>
+                  </div>
+                </div>
               </div>
             ))
           ) : (

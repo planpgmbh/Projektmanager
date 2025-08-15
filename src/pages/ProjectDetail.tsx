@@ -478,12 +478,15 @@ function ProjectDetail() {
     setShowManagePersonsPopup(true);
   };
 
-  const handleSaveInvolvedPersons = async (updatedUserIds: string[]) => {
+  const handleSaveInvolvedPersons = async (updatedInvolvedUserIds: string[], updatedPMUserIds: string[]) => {
     if (!projectId) return;
 
     try {
       const projectRef = doc(db, 'projects', projectId);
-      await updateDoc(projectRef, { involvedUserIds: updatedUserIds });
+      await updateDoc(projectRef, { 
+        involvedUserIds: updatedInvolvedUserIds,
+        PMUserIDs: updatedPMUserIds 
+      });
       await fetchProject();
     } catch (err) {
       console.error('Error updating involved persons:', err);

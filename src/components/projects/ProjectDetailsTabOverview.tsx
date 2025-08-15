@@ -203,10 +203,13 @@ function ProjectDetailsTabOverview({
     setShowManageTeamPopup(true);
   };
 
-  const handleTeamSaved = async (updatedUserIds: string[]) => {
+  const handleTeamSaved = async (updatedInvolvedUserIds: string[], updatedPMUserIds: string[]) => {
     try {
       const projectRef = doc(db, 'projects', project.id);
-      await updateDoc(projectRef, { involvedUserIds: updatedUserIds });
+      await updateDoc(projectRef, { 
+        involvedUserIds: updatedInvolvedUserIds,
+        PMUserIDs: updatedPMUserIds 
+      });
       
       // Mark team invitation as completed and enable both distributeTasks and offerCreated
       await updateWorkflow({

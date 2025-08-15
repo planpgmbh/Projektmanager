@@ -545,12 +545,15 @@ function ProjectsTabOverview() {
     setSelectedProjectForTeam(project);
   };
 
-  const handleSaveInvolvedPersons = async (updatedUserIds: string[]) => {
+  const handleSaveInvolvedPersons = async (updatedInvolvedUserIds: string[], updatedPMUserIds: string[]) => {
     if (!selectedProjectForTeam) return;
 
     try {
       const projectRef = doc(db, 'projects', selectedProjectForTeam.id);
-      await updateDoc(projectRef, { involvedUserIds: updatedUserIds });
+      await updateDoc(projectRef, { 
+        involvedUserIds: updatedInvolvedUserIds,
+        PMUserIDs: updatedPMUserIds 
+      });
     } catch (err) {
       console.error('Error updating involved persons:', err);
       setError('Fehler beim Speichern der beteiligten Personen');
