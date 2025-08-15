@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
+import { useAuthState } from '../../hooks/useAuthState';
 import { Customer } from '../../types';
 import { Dropdown } from '../ui/Dropdown';
 
@@ -13,6 +14,7 @@ interface AddProjectProps {
 
 function AddProject({ onClose, onSave }: AddProjectProps) {
   const navigate = useNavigate();
+  const { user } = useAuthState();
   const [projectName, setProjectName] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -72,6 +74,11 @@ function AddProject({ onClose, onSave }: AddProjectProps) {
         return;
       }
 
+      if (!user) {
+        setError('User not authenticated.');
+        setIsLoading(false);
+        return;
+      }
       const selectedCustomerData = customers.find(c => c.id === selectedCustomer);
       
       // Create the project
@@ -82,7 +89,9 @@ function AddProject({ onClose, onSave }: AddProjectProps) {
         customerName: selectedCustomerData?.name || '',
         customerNumber: selectedCustomerData?.customerNumber || '',
         createdAt: new Date(),
-        status: 'active'
+        status: 'active',
+        PMUserIDs: [user.uid],
+        involvedUserIds: [user.uid]
       });
 
       // Create default section
