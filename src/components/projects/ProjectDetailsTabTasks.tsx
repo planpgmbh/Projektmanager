@@ -344,11 +344,15 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
     if (!projectId) return;
 
     try {
+      // Get the current task to check if status is actually changing
+      const currentTask = tasks.find(task => task.id === taskId);
+      if (!currentTask) return;
+      
       const taskRef = doc(db, `projects/${projectId}/tasks`, taskId);
       await updateDoc(taskRef, { statusdone });
       
-      // Send notification to project managers when task is completed
-      if (statusdone && user && project?.PMUserIDs) {
+      // Send notification to project managers only when task status changes from false to true
+      if (statusdone && !currentTask.statusdone && user && project?.PMUserIDs) {
         const task = tasks.find(t => t.id === taskId);
         if (task) {
           // Filter out the current user to avoid self-notification

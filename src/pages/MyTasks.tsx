@@ -173,11 +173,15 @@ function MyTasks() {
   // Handle task status toggle
   const handleTaskStatusToggle = async (taskId: string, projectId: string, statusdone: boolean) => {
     try {
+      // Get the current task to check if status is actually changing
+      const currentTask = tasksWithDetails.find(task => task.id === taskId);
+      if (!currentTask) return;
+      
       const taskRef = doc(db, `projects/${projectId}/tasks`, taskId);
       await updateDoc(taskRef, { statusdone });
       
-      // Send notification to project managers when task is completed
-      if (statusdone && user) {
+      // Send notification to project managers only when task status changes from false to true
+      if (statusdone && !currentTask.statusdone && user) {
         const project = projects.find(p => p.id === projectId);
         const task = allTasks[projectId]?.find(t => t.id === taskId);
         
