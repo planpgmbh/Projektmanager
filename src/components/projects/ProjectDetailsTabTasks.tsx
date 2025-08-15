@@ -344,22 +344,38 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
     if (!projectId) return;
 
     try {
+      console.log('🔄 DEBUG: handleTaskStatusChange called with:', { taskId, statusdone });
+      
       // Get the current task to check if status is actually changing
       const currentTask = tasks.find(task => task.id === taskId);
-      if (!currentTask) return;
+      if (!currentTask) {
+        console.log('❌ DEBUG: Current task not found for taskId:', taskId);
+        return;
+      }
+      
+      console.log('📋 DEBUG: Current task status:', currentTask.statusdone);
+      console.log('📋 DEBUG: New status:', statusdone);
       
       const taskRef = doc(db, `projects/${projectId}/tasks`, taskId);
       await updateDoc(taskRef, { statusdone });
       
       // Send notification to project managers only when task status changes from false to true
       if (statusdone && !currentTask.statusdone && user && project?.PMUserIDs) {
+        console.log('🎯 DEBUG: Conditions met for sending notification');
+        console.log('  - statusdone:', statusdone);
+        console.log('  - !currentTask.statusdone:', !currentTask.statusdone);
+        console.log('  - user exists:', !!user);
+        console.log('  - project.PMUserIDs:', project.PMUserIDs);
+        
         const task = tasks.find(t => t.id === taskId);
         if (task) {
           // Filter out the current user to avoid self-notification
           const projectManagersToNotify = project.PMUserIDs.filter(pmId => pmId !== user.uid);
+          console.log('👥 DEBUG: Project managers to notify (excluding sender):', projectManagersToNotify);
           
           // Send notification to each project manager
           for (const pmUserId of projectManagersToNotify) {
+            console.log('📤 DEBUG: Sending notification to PM:', pmUserId);
             await createTaskCompletedNotification(
               pmUserId,
               user.uid,
@@ -370,7 +386,16 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
               taskId
             );
           }
+        } else {
+          console.log('❌ DEBUG: Task not found in tasks array for notification');
         }
+      } else {
+        console.log('⏭️ DEBUG: Notification conditions not met:');
+        console.log('  - statusdone:', statusdone);
+        console.log('  - !currentTask.statusdone:', !currentTask.statusdone);
+        console.log('  - user exists:', !!user);
+        console.log('  - project exists:', !!project);
+        console.log('  - project.PMUserIDs exists:', !!project?.PMUserIDs);
       }
     } catch (err) {
       console.error('Error updating task status:', err);

@@ -138,9 +138,20 @@ export const createTaskCompletedNotification = async (
   senderAvatar?: string
 ) => {
   try {
+    console.log('🔔 DEBUG: createTaskCompletedNotification called with:');
+    console.log('  - recipientUserId:', recipientUserId);
+    console.log('  - senderUserId:', senderUserId);
+    console.log('  - customerName:', customerName);
+    console.log('  - projectName:', projectName);
+    console.log('  - taskName:', taskName);
+    console.log('  - projectId:', projectId);
+    console.log('  - taskId:', taskId);
+
     // Fetch sender's user document from Firebase to get firstName
     const senderDoc = await getDoc(doc(db, 'users', senderUserId));
     const senderData = senderDoc.exists() ? senderDoc.data() : null;
+    
+    console.log('👤 DEBUG: Sender data from Firebase:', senderData);
     
     // Use firstName from Firebase, fallback to email if not available
     const firstName = senderData?.firstName || senderData?.email?.split('@')[0] || 'Jemand';
@@ -164,8 +175,11 @@ export const createTaskCompletedNotification = async (
       notificationData.senderAvatar = senderAvatar;
     }
 
+    console.log('📄 DEBUG: Notification data to be saved:', notificationData);
+
     await addDoc(collection(db, 'notifications'), notificationData);
+    console.log('✅ DEBUG: Notification successfully added to Firestore');
   } catch (error) {
-    console.error('Error creating task completed notification:', error);
+    console.error('❌ DEBUG: Error creating task completed notification:', error);
   }
 };
