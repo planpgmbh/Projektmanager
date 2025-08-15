@@ -393,15 +393,12 @@ function TimeTrackingOverview() {
                       maxWidth="300px"
                     >
                       <div className="py-1">
-                        {entry.customerId 
-                          ? uniqueCustomers.find(c => c.id === entry.customerId)?.name || 'Unbekannter Kunde'
-                          : getCustomerName(entry.projectId)
-                        }
+                        {uniqueCustomers.map((customer) => (
                           <button
                             key={customer.id}
                             onClick={() => handleCustomerChange(entry.id, customer.id)}
                             className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 block ${
-                              customer.id === entry.projectId ? 'font-semibold text-gray-900' : 'text-gray-700'
+                              customer.id === entry.customerId ? 'font-semibold text-gray-900' : 'text-gray-700'
                             }`}
                           >
                             {customer.name}
