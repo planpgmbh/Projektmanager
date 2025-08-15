@@ -7,6 +7,7 @@ import { useProjectsData } from '../hooks/useProjectsData';
 import { usePriceItemsData } from '../hooks/usePriceItemsData';
 import { useTimeEntries } from '../hooks/useTimeEntries';
 import { useActiveTimer } from '../hooks/useActiveTimer';
+import { createTaskCompletedNotification } from '../utils/notifications';
 import Sidebar from '../components/Sidebar';
 import PageHeader from '../components/PageHeader';
 import { SearchBar } from '../components/ui/SearchBar';
@@ -174,6 +175,30 @@ function MyTasks() {
     try {
       const taskRef = doc(db, `projects/${projectId}/tasks`, taskId);
       await updateDoc(taskRef, { statusdone });
+      
+      // Send notification to project managers when task is completed
+      if (statusdone && user) {
+        const project = projects.find(p => p.id === projectId);
+        const task = allTasks[projectId]?.find(t => t.id === taskId);
+        
+        if (project && task && project.PMUserIDs) {
+          // Filter out the current user to avoid self-notification
+          const projectManagersToNotify = project.PMUserIDs.filter(pmId => pmId !== user.uid);
+          
+          // Send notification to each project manager
+          for (const pmUserId of projectManagersToNotify) {
+            await createTaskCompletedNotification(
+              pmUserId,
+              user.uid,
+              project.customerName,
+              project.name,
+              task.name,
+              projectId,
+              taskId
+            );
+          }
+        }
+      }
     } catch (err) {
       console.error('Error updating task status:', err);
       setError('Fehler beim Aktualisieren des Aufgabenstatus');

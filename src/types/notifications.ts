@@ -1,6 +1,6 @@
 export interface Notification {
   id: string;
-  type: 'task_assigned' | 'project_added' | 'project_removed';
+  type: 'task_assigned' | 'project_added' | 'project_removed' | 'task_completed';
   senderName: string;
   senderAvatar?: string;
   message: string;

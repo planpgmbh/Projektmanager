@@ -126,3 +126,46 @@ export const createProjectRemovalNotification = async (
     console.error('Error creating project removal notification:', error);
   }
 };
+
+export const createTaskCompletedNotification = async (
+  recipientUserId: string,
+  senderUserId: string,
+  customerName: string,
+  projectName: string,
+  taskName: string,
+  projectId: string,
+  taskId: string,
+  senderAvatar?: string
+) => {
+  try {
+    // Fetch sender's user document from Firebase to get firstName
+    const senderDoc = await getDoc(doc(db, 'users', senderUserId));
+    const senderData = senderDoc.exists() ? senderDoc.data() : null;
+    
+    // Use firstName from Firebase, fallback to email if not available
+    const firstName = senderData?.firstName || senderData?.email?.split('@')[0] || 'Jemand';
+    const senderName = senderData?.email || 'Unbekannt';
+    
+    const notificationData: any = {
+      type: 'task_completed',
+      userId: recipientUserId,
+      senderName,
+      message: `${firstName} hat eine Aufgabe abgeschlossen`,
+      subline1: `${customerName} > ${projectName}`,
+      subline2: taskName,
+      isRead: false,
+      createdAt: new Date(),
+      targetUrl: `/projects/${projectId}?tab=tasks`,
+      targetId: taskId
+    };
+
+    // Only add senderAvatar if it's provided and not undefined
+    if (senderAvatar) {
+      notificationData.senderAvatar = senderAvatar;
+    }
+
+    await addDoc(collection(db, 'notifications'), notificationData);
+  } catch (error) {
+    console.error('Error creating task completed notification:', error);
+  }
+};

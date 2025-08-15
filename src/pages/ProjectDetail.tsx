@@ -618,6 +618,7 @@ function ProjectDetail() {
               customerName={project.customerName}
               projectName={project.name}
               projectId={project.id}
+              project={project}
               timeEntries={processedTimeEntries}
               basicPriceItems={basicPriceItems}
               customerPricelists={customerPricelists}
