@@ -341,11 +341,10 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
   };
 
   const handleTaskStatusChange = async (taskId: string, statusdone: boolean) => {
+    console.log('🔄 DEBUG: handleTaskStatusChange called with:', { taskId, statusdone });
     if (!projectId) return;
 
     try {
-      console.log('🔄 DEBUG: handleTaskStatusChange called with:', { taskId, statusdone });
-      
       // Get the current task to check if status is actually changing
       const currentTask = tasks.find(task => task.id === taskId);
       if (!currentTask) {
