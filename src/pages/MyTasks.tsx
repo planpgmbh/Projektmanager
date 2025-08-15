@@ -172,9 +172,8 @@ function MyTasks() {
 
   // Handle task status toggle
   const handleTaskStatusToggle = async (taskId: string, projectId: string, statusdone: boolean) => {
+    console.log('🔄 DEBUG: handleTaskStatusToggle called with:', { taskId, projectId, statusdone });
     try {
-      console.log('🔄 DEBUG: handleTaskStatusToggle called with:', { taskId, projectId, statusdone });
-      
       // Get the current task to check if status is actually changing
       const currentTask = tasksWithDetails.find(task => task.id === taskId);
       if (!currentTask) {
