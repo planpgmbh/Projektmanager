@@ -368,11 +368,8 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
         
         const task = tasks.find(t => t.id === taskId);
         if (task) {
-          // Filter out the current user to avoid self-notification
-          const projectManagersToNotify = project.PMUserIDs.filter(pmId => pmId !== user.uid);
           // ÄNDERUNG: Alle Projektmanager benachrichtigen, auch den Sender
           const projectManagersToNotify = project.PMUserIDs;
-          console.log('👥 DEBUG: Project managers to notify (excluding sender):', projectManagersToNotify);
           console.log('👥 DEBUG: Project managers to notify (including sender):', projectManagersToNotify);
           
           // Send notification to each project manager
