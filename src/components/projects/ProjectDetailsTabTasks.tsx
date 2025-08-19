@@ -30,7 +30,7 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
   project,
   timeEntries, 
   basicPriceItems, 
-  customerPricelists 
+  customerPricelists,
   canSeeBudget
 }: ProjectDetailsTabTasksProps) {
   const { user } = useAuthState();
