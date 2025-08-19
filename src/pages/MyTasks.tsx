@@ -3,6 +3,7 @@ import { ListTodo, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import { collection, query, onSnapshot, where, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuthState } from '../hooks/useAuthState';
+import { useUserRole } from '../hooks/useUserRole';
 import { useProjectsData } from '../hooks/useProjectsData';
 import { usePriceItemsData } from '../hooks/usePriceItemsData';
 import { useTimeEntries } from '../hooks/useTimeEntries';
@@ -87,6 +88,7 @@ interface SortState {
 
 function MyTasks() {
   const { user } = useAuthState();
+  const { role } = useUserRole(user);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,6 +103,9 @@ function MyTasks() {
   
   // Track if user has manually interacted with filters
   const [hasUserInteractedWithFilters, setHasUserInteractedWithFilters] = useState(false);
+
+  // Check if user can see budget column
+  const canSeeBudget = role === 'projektmanager' || role === 'admin';
 
   // Time tracking states
   const [showAddTimeEntryPopup, setShowAddTimeEntryPopup] = useState(false);
@@ -663,15 +668,17 @@ function MyTasks() {
                         {getSortIcon('date')}
                       </button>
                     </th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSortChange('totalEffort')}
-                        className="group flex items-center gap-1 hover:text-gray-700 transition-colors"
-                      >
-                        AUFWAND
-                        {getSortIcon('totalEffort')}
-                      </button>
-                    </th>
+                    {canSeeBudget && (
+                      <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <button
+                          onClick={() => handleSortChange('totalEffort')}
+                          className="group flex items-center gap-1 hover:text-gray-700 transition-colors"
+                        >
+                          AUFWAND
+                          {getSortIcon('totalEffort')}
+                        </button>
+                      </th>
+                    )}
                     <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                       ZEITERFASSUNG
                     </th>
@@ -723,16 +730,18 @@ function MyTasks() {
                             <span className="text-gray-400">-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-left">
-                          <div className="w-full max-w-[120px]">
-                            <BudgetBar
-                              totalValue={task.totalEffort}
-                              budget={task.budget_total}
-                              height="sm"
-                              showPlaceholder={true}
-                            />
-                          </div>
-                        </td>
+                        {canSeeBudget && (
+                          <td className="px-6 py-4 whitespace-nowrap text-left">
+                            <div className="w-full max-w-[120px]">
+                              <BudgetBar
+                                totalValue={task.totalEffort}
+                                budget={task.budget_total}
+                                height="sm"
+                                showPlaceholder={true}
+                              />
+                            </div>
+                          </td>
+                        )}
                         <td className="px-6 py-4 whitespace-nowrap text-center w-32">
                           <Button
                             variant="secondary"
@@ -749,7 +758,7 @@ function MyTasks() {
                   {filteredAndSortedTasks.length === 0 && (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={canSeeBudget ? 6 : 5}
                         className="px-6 py-8 text-center text-sm text-gray-500 bg-gray-50"
                       >
                         {!user ? 'Bitte melden Sie sich an, um Ihre Aufgaben zu sehen' : 'Keine Aufgaben gefunden'}
