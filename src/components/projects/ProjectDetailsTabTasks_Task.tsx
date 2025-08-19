@@ -161,12 +161,12 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
         {(provided) => (
           <div
             ref={provided.innerRef}
-            className={`grid ${canSeeBudget ? 'grid-cols-[30px_1fr_150px_150px_150px_150px_30px]' : 'grid-cols-[30px_1fr_150px_150px_150px_30px]'} gap-4 px-6 py-2 bg-white hover:bg-gray-50 border-b border-gray-200`}
-            className="group"
+            {...provided.draggableProps}
+            className={`group ${canSeeBudget ? 'grid grid-cols-[30px_1fr_150px_150px_150px_150px_30px]' : 'grid grid-cols-[30px_1fr_150px_150px_150px_30px]'} gap-4 px-6 py-2 bg-white hover:bg-gray-50 border-b border-gray-200`}
           >
             <div
               {...provided.dragHandleProps}
-              className="grid grid-cols-[30px_1fr_150px_150px_150px_150px_30px] gap-4 px-6 py-2 bg-white hover:bg-gray-50 border-b border-gray-200"
+              className="contents"
             >
               <button
                 onClick={(e) => {
