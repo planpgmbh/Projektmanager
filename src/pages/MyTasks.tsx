@@ -439,6 +439,12 @@ function MyTasks() {
     // Apply sorting
     if (sort.field) {
       filtered.sort((a, b) => {
+        // Primary sort: uncompleted tasks (statusdone: false) before completed tasks (statusdone: true)
+        if (a.statusdone !== b.statusdone) {
+          return a.statusdone ? 1 : -1; // false (uncompleted) comes before true (completed)
+        }
+
+        // Secondary sort: user-selected field
         let aValue: string | number | Date;
         let bValue: string | number | Date;
 
@@ -469,6 +475,14 @@ function MyTasks() {
         } else {
           return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
         }
+      });
+    } else {
+      // If no specific sort field is selected, still apply the primary sort (uncompleted before completed)
+      filtered.sort((a, b) => {
+        if (a.statusdone !== b.statusdone) {
+          return a.statusdone ? 1 : -1; // false (uncompleted) comes before true (completed)
+        }
+        return 0; // Keep original order for tasks with same completion status
       });
     }
 
