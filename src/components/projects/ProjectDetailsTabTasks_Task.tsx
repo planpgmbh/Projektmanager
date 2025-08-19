@@ -4,6 +4,7 @@ import { ChevronRight, MoreHorizontal } from 'lucide-react';
 import { Task, ProcessedTimeEntry } from './ProjectDetailsTabTasks_Types';
 import { TaskContext } from './ProjectDetailsTabTasks_Context';
 import TaskDatePickerPopup from './TaskDatePickerPopup';
+import { BudgetBar } from '../ui/BudgetBar';
 
 interface ProjectDetailsTabTasks_TaskProps {
   task: Task;
@@ -97,16 +98,6 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
   const totalEffort = servicesTotal + timeEntriesTotal;
 
   // Progress bar calculation - Nur anzeigen wenn Budget > 0
-  const getProgressPercentage = () => {
-    if (task.budget_total === 0) {
-      return 0; // Kein Budget = keine Anzeige
-    }
-    return Math.min((totalEffort / task.budget_total) * 100, 100);
-  };
-
-  const isOverBudget = totalEffort > task.budget_total && task.budget_total > 0;
-  const progressPercentage = getProgressPercentage();
-  const hasBudget = task.budget_total > 0;
 
   // Helper function to create acronym from name
   const createAcronym = (firstName: string, lastName: string) => {
@@ -312,21 +303,15 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
                 </div>
               </div>
               <div className="text-sm text-right flex justify-end items-center">
-                {/* Progress Bar - Nur anzeigen wenn Budget > 0 */}
-                {hasBudget ? (
-                  <div className="w-[80px] bg-gray-200 rounded-full h-2.5 relative">
-                    <div 
-                      className={`h-2.5 rounded-full transition-all duration-300 ${
-                        isOverBudget ? 'bg-red-500' : 'bg-blue-500'
-                      }`}
-                      style={{ width: `${progressPercentage}%` }}
-                    ></div>
-                  </div>
-                ) : (
-                  <div className="w-[80px] flex justify-center">
-                    <span className="text-xs text-gray-400">-</span>
-                  </div>
-                )}
+                {/* Aufwandsbar - Für alle Benutzer sichtbar */}
+                <div className="w-[80px]">
+                  <BudgetBar
+                    totalValue={totalEffort}
+                    budget={task.budget_total}
+                    height="sm"
+                    showPlaceholder={true}
+                  />
+                </div>
               </div>
               {canSeeBudget && (
                 <div className="text-right text-sm">
@@ -397,6 +382,7 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
                         )}
                       </div>
                       <div></div>
+                      <div></div>
                       <div className="text-sm text-right">{formatCurrency(service.total_eur)}</div>
                       {canSeeBudget && <div></div>}
                       <div></div>
@@ -428,6 +414,7 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
                           ))}
                         </div>
                       </div>
+                      <div></div>
                       <div></div>
                       <div className="text-sm text-right text-gray-900">
                         {formatCurrency(group.totalValue)}

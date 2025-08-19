@@ -15,28 +15,17 @@ export function BudgetBar({
   height = 'sm',
   showPlaceholder = false
 }: BudgetBarProps) {
-  // Wenn kein Budget vorhanden ist
-  if (budget === 0) {
-    if (showPlaceholder) {
-      // Grauer Platzhalter-Balken
-      const heightClasses = {
-        sm: 'h-2',
-        md: 'h-3',
-        lg: 'h-4'
-      };
-      
-      return (
-        <div className={`w-full bg-gray-100 rounded-full ${heightClasses[height]} ${className}`}>
-          <div className={`${heightClasses[height]} rounded-full bg-gray-200 w-0`}></div>
-        </div>
-      );
+  const getBudgetUsage = () => {
+    if (budget === 0) {
+      // Wenn kein Budget festgelegt ist
+      if (totalValue === 0) {
+        return { percentage: 0, isOverBudget: false };
+      } else {
+        // Zeige vollen Balken wenn Aufwand vorhanden aber kein Budget
+        return { percentage: 100, isOverBudget: true };
+      }
     }
     
-    // Kein Budget = keine Anzeige
-    return null;
-  }
-
-  const getBudgetUsage = () => {
     const percentage = Math.min((totalValue / budget) * 100, 100);
     const isOverBudget = totalValue > budget;
     
@@ -51,8 +40,13 @@ export function BudgetBar({
 
   const budgetUsage = getBudgetUsage();
 
+  // Immer einen Balken anzeigen wenn showPlaceholder true ist oder wenn totalValue > 0
+  if (budget === 0 && totalValue === 0 && !showPlaceholder) {
+    return null;
+  }
+
   return (
-    <div className={`w-full bg-gray-200 rounded-full ${heightClasses[height]} ${className}`}>
+    <div className={`w-full bg-gray-100 rounded-full ${heightClasses[height]} ${className}`}>
       <div 
         className={`${heightClasses[height]} rounded-full transition-all duration-300 ${
           budgetUsage.isOverBudget ? 'bg-red-500' : 'bg-blue-500'
