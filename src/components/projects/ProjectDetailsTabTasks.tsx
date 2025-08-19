@@ -501,6 +501,7 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
   return (
     <TaskContext.Provider value={{
       users,
+      involvedUserIds: project.involvedUserIds || [],
       customerName,
       projectName,
       senderUserId: user?.uid || '',

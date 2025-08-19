@@ -3,6 +3,7 @@ import { User } from './ProjectDetailsTabTasks_Types';
 
 interface TaskContextType {
   users: User[];
+  involvedUserIds: string[];
   customerName: string;
   projectName: string;
   senderUserId: string;
@@ -27,6 +28,7 @@ interface TaskContextType {
 
 export const TaskContext = createContext<TaskContextType>({
   users: [],
+  involvedUserIds: [],
   customerName: '',
   projectName: '',
   senderUserId: '',

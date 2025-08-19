@@ -22,6 +22,7 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
 }) => {
   const {
     users,
+    involvedUserIds,
     editingTaskId,
     editingTaskName,
     editingTaskBudget,
@@ -44,6 +45,15 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false); // Tasks are closed by default
   const [showDatePickerPopup, setShowDatePickerPopup] = useState(false);
+
+  // Filter users to only show those involved in the project
+  const availableUsers = users.filter(user => involvedUserIds.includes(user.id));
+  
+  // Always include the currently assigned user (even if not in involvedUserIds due to data inconsistency)
+  const currentlyAssignedUser = users.find(user => user.id === task.assignto);
+  const usersForDropdown = currentlyAssignedUser && !availableUsers.find(u => u.id === currentlyAssignedUser.id)
+    ? [...availableUsers, currentlyAssignedUser]
+    : availableUsers;
 
   // Zeiteinträge für diese Aufgabe filtern und nach Preisposition gruppieren
   const taskTimeEntries = processedTimeEntries.filter(entry => entry.taskId === task.id);
@@ -264,7 +274,7 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
                     autoFocus
                   >
                     <option value="">-</option>
-                    {users.map(user => (
+                    {usersForDropdown.map(user => (
                       <option key={user.id} value={user.id}>
                         {user.firstName} {user.lastName}
                       </option>
@@ -277,7 +287,7 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
                   >
                     {task.assignto ? (
                       <div className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
-                        {users.find(u => u.id === task.assignto)?.firstName || task.assignto}
+                        {usersForDropdown.find(u => u.id === task.assignto)?.firstName || task.assignto}
                       </div>
                     ) : (
                       <span className="text-gray-400">-</span>
