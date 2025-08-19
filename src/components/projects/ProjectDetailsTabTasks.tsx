@@ -19,6 +19,7 @@ interface ProjectDetailsTabTasksProps {
   timeEntries: ProcessedTimeEntry[];
   basicPriceItems: PriceItem[];
   customerPricelists: { [customerId: string]: PriceItem[] };
+  canSeeBudget: boolean;
 }
 
 const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({ 
@@ -30,6 +31,7 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
   timeEntries, 
   basicPriceItems, 
   customerPricelists 
+  canSeeBudget
 }: ProjectDetailsTabTasksProps) {
   const { user } = useAuthState();
   const [sections, setSections] = useState<Section[]>([]);
@@ -531,13 +533,15 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
             </div>
           )}
 
-          <div className="grid grid-cols-[30px_1fr_150px_150px_150px_150px_30px] gap-4 px-6 py-3 bg-gray-100 border-y border-gray-200">
+          <div className={`grid ${canSeeBudget ? 'grid-cols-[30px_1fr_150px_150px_150px_150px_30px]' : 'grid-cols-[30px_1fr_150px_150px_150px_30px]'} gap-4 px-6 py-3 bg-gray-100 border-y border-gray-200`}>
             <div></div>
             <div className="text-xs font-medium text-gray-500 uppercase">Name</div>
             <div className="text-xs font-medium text-gray-500 uppercase text-right">Verantwortung</div>
             <div className="text-xs font-medium text-gray-500 uppercase text-right">Termine</div>
             <div className="text-xs font-medium text-gray-500 uppercase text-right">Aufwand</div>
-            <div className="text-xs font-medium text-gray-500 uppercase text-right">Budget</div>
+            {canSeeBudget && (
+              <div className="text-xs font-medium text-gray-500 uppercase text-right">Budget</div>
+            )}
             <div></div>
           </div>
 
@@ -568,6 +572,7 @@ const ProjectDetailsTabTasks = memo(function ProjectDetailsTabTasks({
                       setEditingSectionId={setEditingSectionId}
                       setEditingSectionName={setEditingSectionName}
                       setOpenMenuId={setOpenMenuId}
+                      canSeeBudget={canSeeBudget}
                     />
                   ))}
                   {provided.placeholder}

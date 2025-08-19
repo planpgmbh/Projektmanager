@@ -21,6 +21,7 @@ interface ProjectDetailsTabTasks_SectionProps {
   setEditingSectionId: (id: string | null) => void;
   setEditingSectionName: (name: string) => void;
   setOpenMenuId: (id: string | null) => void;
+  canSeeBudget: boolean;
 }
 
 const ProjectDetailsTabTasks_Section: React.FC<ProjectDetailsTabTasks_SectionProps> = ({
@@ -33,7 +34,8 @@ const ProjectDetailsTabTasks_Section: React.FC<ProjectDetailsTabTasks_SectionPro
   onDeleteSection,
   onAddTask,
   onDuplicateTask,
-  onDeleteTask
+  onDeleteTask,
+  canSeeBudget
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(true); // Sections are open by default
 
@@ -80,6 +82,7 @@ const ProjectDetailsTabTasks_Section: React.FC<ProjectDetailsTabTasks_SectionPro
                       index={index}
                       onDuplicateTask={onDuplicateTask}
                       onDeleteTask={onDeleteTask}
+                      canSeeBudget={canSeeBudget}
                     />
                   ))}
                   {provided.placeholder}

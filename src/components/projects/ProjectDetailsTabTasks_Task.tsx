@@ -11,6 +11,7 @@ interface ProjectDetailsTabTasks_TaskProps {
   index: number;
   onDuplicateTask: (task: Task) => void;
   onDeleteTask: (taskId: string) => void;
+  canSeeBudget: boolean;
 }
 
 const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = ({
@@ -18,7 +19,8 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
   processedTimeEntries,
   index,
   onDuplicateTask,
-  onDeleteTask
+  onDeleteTask,
+  canSeeBudget
 }) => {
   const {
     users,
@@ -168,7 +170,7 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
         {(provided) => (
           <div
             ref={provided.innerRef}
-            {...provided.draggableProps}
+            className={`grid ${canSeeBudget ? 'grid-cols-[30px_1fr_150px_150px_150px_150px_30px]' : 'grid-cols-[30px_1fr_150px_150px_150px_30px]'} gap-4 px-6 py-2 bg-white hover:bg-gray-50 border-b border-gray-200`}
             className="group"
           >
             <div
@@ -326,38 +328,40 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
                   </div>
                 )}
               </div>
-              <div className="text-right text-sm">
-                {editingBudgetTaskId === task.id ? (
-                  <input
-                    type="number"
-                    value={editingTaskBudget}
-                    onChange={(e) => setEditingTaskBudget(e.target.value)}
-                    onBlur={() => {
-                      handleTaskBudgetEdit(task.id, editingTaskBudget);
-                    }}
-                    onFocus={(e) => e.target.select()}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+              {canSeeBudget && (
+                <div className="text-right text-sm">
+                  {editingBudgetTaskId === task.id ? (
+                    <input
+                      type="number"
+                      value={editingTaskBudget}
+                      onChange={(e) => setEditingTaskBudget(e.target.value)}
+                      onBlur={() => {
                         handleTaskBudgetEdit(task.id, editingTaskBudget);
-                      } else if (e.key === 'Escape') {
-                        setEditingBudgetTaskId(null);
-                      }
-                    }}
-                    className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
-                    autoFocus
-                  />
-                ) : (
-                  <span
-                    onClick={() => {
-                      setEditingBudgetTaskId(task.id);
-                      setEditingTaskBudget(task.budget_total.toString());
-                    }}
-                    className="cursor-pointer hover:text-blue-600"
-                  >
-                    {formatCurrency(task.budget_total)}
-                  </span>
-                )}
-              </div>
+                      }}
+                      onFocus={(e) => e.target.select()}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleTaskBudgetEdit(task.id, editingTaskBudget);
+                        } else if (e.key === 'Escape') {
+                          setEditingBudgetTaskId(null);
+                        }
+                      }}
+                      className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-right"
+                      autoFocus
+                    />
+                  ) : (
+                    <span
+                      onClick={() => {
+                        setEditingBudgetTaskId(task.id);
+                        setEditingTaskBudget(task.budget_total.toString());
+                      }}
+                      className="cursor-pointer hover:text-blue-600"
+                    >
+                      {formatCurrency(task.budget_total)}
+                    </span>
+                  )}
+                </div>
+              )}
               <div></div>
             </div>
 
@@ -368,7 +372,7 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
                   task.services.map((service) => (
                     <div
                       key={service.id}
-                      className="grid grid-cols-[1fr_150px_150px_150px_150px_30px] gap-4 px-6 py-2 bg-gray-50 border-b border-gray-200"
+                      className={`grid ${canSeeBudget ? 'grid-cols-[1fr_150px_150px_150px_150px_30px]' : 'grid-cols-[1fr_150px_150px_150px_30px]'} gap-4 px-6 py-2 bg-gray-50 border-b border-gray-200`}
                     >
                       <div className="text-sm text-gray-600 pl-[73px]">{service.name}</div>
                       <div className="text-right">
@@ -394,7 +398,7 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
                       </div>
                       <div></div>
                       <div className="text-sm text-right">{formatCurrency(service.total_eur)}</div>
-                      <div></div>
+                      {canSeeBudget && <div></div>}
                       <div></div>
                     </div>
                   ))
@@ -407,7 +411,7 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
                   return (
                     <div
                       key={group.priceItemId}
-                      className="grid grid-cols-[1fr_150px_150px_150px_150px_30px] gap-4 px-6 py-2 bg-gray-100 border-b border-gray-200"
+                      className={`grid ${canSeeBudget ? 'grid-cols-[1fr_150px_150px_150px_150px_30px]' : 'grid-cols-[1fr_150px_150px_150px_30px]'} gap-4 px-6 py-2 bg-gray-100 border-b border-gray-200`}
                     >
                       <div className="text-sm text-gray-900 pl-[73px]">{group.priceItemName}</div>
                       <div className="text-right">
@@ -428,7 +432,7 @@ const ProjectDetailsTabTasks_Task: React.FC<ProjectDetailsTabTasks_TaskProps> = 
                       <div className="text-sm text-right text-gray-900">
                         {formatCurrency(group.totalValue)}
                       </div>
-                      <div></div>
+                      {canSeeBudget && <div></div>}
                       <div></div>
                     </div>
                   );

@@ -3,6 +3,8 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { doc, getDoc, updateDoc, collection, query, onSnapshot, where, orderBy, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { FolderKanban, ListTodo, Kanban } from 'lucide-react';
+import { useAuthState } from '../hooks/useAuthState';
+import { useUserRole } from '../hooks/useUserRole';
 import Sidebar from '../components/Sidebar';
 import PageHeader from '../components/PageHeader';
 import ProjectDetailsTabOverview from '../components/projects/ProjectDetailsTabOverview';
@@ -59,6 +61,8 @@ function ProjectDetail() {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuthState();
+  const { role } = useUserRole(user);
   const [project, setProject] = useState<Project | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -73,6 +77,9 @@ function ProjectDetail() {
   const [showManagePersonsPopup, setShowManagePersonsPopup] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [teamUpdateEffect, setTeamUpdateEffect] = useState(false);
+
+  // Check if user can see budget column
+  const canSeeBudget = role === 'projektmanager' || role === 'admin';
 
   const tabs = [
     {
@@ -622,6 +629,7 @@ function ProjectDetail() {
               timeEntries={processedTimeEntries}
               basicPriceItems={basicPriceItems}
               customerPricelists={customerPricelists}
+              canSeeBudget={canSeeBudget}
             />
           )}
           {currentTab === 'planner' && <ProjectDetailsTabPlanner />}
