@@ -199,11 +199,8 @@ function MyTasks() {
         console.log('👥 DEBUG: Project PMUserIDs:', project?.PMUserIDs);
         
         if (project && task && project.PMUserIDs) {
-          // Filter out the current user to avoid self-notification
-          const projectManagersToNotify = project.PMUserIDs.filter(pmId => pmId !== user.uid);
           // ÄNDERUNG: Alle Projektmanager benachrichtigen, auch den Sender
           const projectManagersToNotify = project.PMUserIDs;
-          console.log('👥 DEBUG: Project managers to notify (excluding sender):', projectManagersToNotify);
           console.log('👥 DEBUG: Project managers to notify (including sender):', projectManagersToNotify);
           
           // Send notification to each project manager
