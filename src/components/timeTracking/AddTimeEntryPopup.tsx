@@ -186,7 +186,6 @@ function AddTimeEntryPopup({
         date: entryDate.toISOString().split('T')[0]
       };
 
-      console.log('Saving time entry with rounded hours:', newEntry);
       await onSave(newEntry);
       onClose();
     } catch (err) {
@@ -216,7 +215,6 @@ function AddTimeEntryPopup({
         date: entryDate.toISOString().split('T')[0]
       };
 
-      console.log('Starting timer with entry data:', timerEntry);
       await onStartTimer(timerEntry);
       onClose();
     } catch (err) {

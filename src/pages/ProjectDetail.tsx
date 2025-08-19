@@ -103,8 +103,6 @@ function ProjectDetail() {
   const fetchProject = async () => {
     if (!projectId) return;
 
-    console.log('🔍 DEBUG: fetchProject called for projectId:', projectId);
-
     try {
       const projectRef = doc(db, 'projects', projectId);
       const projectDoc = await getDoc(projectRef);
@@ -114,9 +112,6 @@ function ProjectDetail() {
           id: projectDoc.id,
           ...projectDoc.data()
         } as Project;
-
-        console.log('📊 DEBUG: Project data loaded from Firebase:', projectData);
-        console.log('🔧 DEBUG: Project workflow object:', projectData.workflow);
 
         // Convert Firestore Timestamps to Date objects in workflow
         if (projectData.workflow) {
@@ -140,28 +135,18 @@ function ProjectDetail() {
         const offerId = projectData.workflow?.offerCreated?.offerId;
         const offerApprovedStatus = projectData.workflow?.offerApproved?.status;
         
-        console.log('📋 DEBUG: Checking for offer ID:', offerId);
-        console.log('📋 DEBUG: Offer workflow step status:', offerApprovedStatus);
-
         if (offerId && offerApprovedStatus === 'current') {
-          console.log('🌐 DEBUG: Making API request to fetch offer status for ID:', offerId);
-          
           try {
             const offerResponse = await fetch(`/api/orders/${offerId}`);
-            console.log('📡 DEBUG: Offer API response status:', offerResponse.ok, offerResponse.status);
             
             if (offerResponse.ok) {
               const offerData = await offerResponse.json();
-              console.log('📄 DEBUG: Full offer data received:', offerData);
               
               // Access the first element of the objects array
               const sevDeskOfferStatus = parseInt(offerData.objects[0]?.status || '0', 10);
-              console.log('📋 DEBUG: SevDesk offer status:', sevDeskOfferStatus);
               
               // If offer is accepted (status 500), update workflow to completed
               if (sevDeskOfferStatus === 500) {
-                console.log('✅ DEBUG: Offer is accepted (500) - updating workflow to completed');
-                
                 updatedWorkflow.offerApproved = {
                   status: 'completed',
                   offerStatus: 'approved',
@@ -171,21 +156,11 @@ function ProjectDetail() {
                 // Also enable invoice creation
                 updatedWorkflow.invoiceCreated = { status: 'current' };
                 workflowNeedsUpdate = true;
-                
-                console.log('✅ DEBUG: Offer detected as accepted, updating workflow to completed');
-              } else {
-                console.log('⚪ DEBUG: Offer not yet accepted. Status:', sevDeskOfferStatus);
               }
-            } else {
-              console.error('❌ DEBUG: Offer API request failed with status:', offerResponse.status);
             }
           } catch (err) {
-            console.error('❌ DEBUG: Error checking offer status:', err);
+            console.error('Error checking offer status:', err);
           }
-        } else if (offerApprovedStatus === 'completed') {
-          console.log('⚪ DEBUG: Offer workflow already completed, skipping status check to prevent regression');
-        } else {
-          console.log('⚪ DEBUG: No offer ID found or offer workflow not current, skipping offer status check');
         }
 
         // Check invoice status in sevDesk and update workflow if needed
@@ -193,28 +168,18 @@ function ProjectDetail() {
         const invoiceId = projectData.workflow?.invoiceCreated?.invoiceId;
         const invoicePaidStatus = projectData.workflow?.invoicePaid?.status;
         
-        console.log('💰 DEBUG: Checking for invoice ID:', invoiceId);
-        console.log('💰 DEBUG: Invoice workflow step status:', invoicePaidStatus);
-
         if (invoiceId && invoicePaidStatus === 'current') {
-          console.log('🌐 DEBUG: Making API request to fetch invoice status for ID:', invoiceId);
-          
           try {
             const invoiceResponse = await fetch(`/api/invoices/${invoiceId}`);
-            console.log('📡 DEBUG: Invoice API response status:', invoiceResponse.ok, invoiceResponse.status);
             
             if (invoiceResponse.ok) {
               const invoiceData = await invoiceResponse.json();
-              console.log('📄 DEBUG: Full invoice data received:', invoiceData);
               
               // Fix: Access the first element of the objects array
               const sevDeskInvoiceStatus = parseInt(invoiceData.objects[0]?.status || '0', 10);
-              console.log('💳 DEBUG: SevDesk invoice status:', sevDeskInvoiceStatus);
               
               // If invoice is paid (status 400 OR 1000), update workflow to completed
               if (sevDeskInvoiceStatus === 400 || sevDeskInvoiceStatus === 1000) {
-                console.log('✅ DEBUG: Invoice is paid (400 or 1000) - updating workflow to completed');
-                
                 updatedWorkflow.invoicePaid = {
                   status: 'completed',
                   invoiceStatus: 'paid',
@@ -224,43 +189,30 @@ function ProjectDetail() {
                 // Also enable project archiving
                 updatedWorkflow.projectArchived = { status: 'current' };
                 workflowNeedsUpdate = true;
-                
-                console.log('✅ DEBUG: Invoice detected as paid, updating workflow to completed');
-              } else {
-                console.log('⚪ DEBUG: Invoice not yet paid. Status:', sevDeskInvoiceStatus);
               }
-            } else {
-              console.error('❌ DEBUG: Invoice API request failed with status:', invoiceResponse.status);
             }
           } catch (err) {
-            console.error('❌ DEBUG: Error checking invoice status:', err);
+            console.error('Error checking invoice status:', err);
           }
-        } else if (invoicePaidStatus === 'completed') {
-          console.log('⚪ DEBUG: Invoice workflow already completed, skipping status check to prevent regression');
-        } else {
-          console.log('⚪ DEBUG: No invoice ID found or invoice workflow not current, skipping invoice status check');
         }
 
         // Save workflow changes to Firebase if needed
         if (workflowNeedsUpdate) {
-          console.log('💾 DEBUG: Saving workflow changes to Firebase...');
           try {
             await updateDoc(projectRef, { workflow: updatedWorkflow });
             projectData.workflow = updatedWorkflow;
-            console.log('✅ DEBUG: Workflow successfully updated in Firebase');
           } catch (updateError) {
-            console.error('❌ DEBUG: Error updating workflow in Firebase:', updateError);
+            console.error('Error updating workflow in Firebase:', updateError);
           }
         }
 
         setProject(projectData);
         setEditedTitle(projectData.name);
       } else {
-        console.error('❌ DEBUG: Project document does not exist');
         setError('Projekt nicht gefunden');
       }
     } catch (err) {
-      console.error('❌ DEBUG: Error fetching project:', err);
+      console.error('Error fetching project:', err);
       setError('Fehler beim Laden des Projekts');
     }
   };
