@@ -1,9 +1,10 @@
 import React from 'react';
-import { X, Settings } from 'lucide-react';
+import { X, Settings, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationCard from './NotificationCard';
 import { CustomScrollbar } from '../ui/CustomScrollbar';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 interface NotificationSidebarProps {
   isOpen: boolean;
@@ -12,7 +13,8 @@ interface NotificationSidebarProps {
 
 function NotificationSidebar({ isOpen, onClose }: NotificationSidebarProps) {
   const navigate = useNavigate();
-  const { notifications } = useNotifications();
+  const { notifications, deleteAllNotifications } = useNotifications();
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = React.useState(false);
 
   const handleSettingsClick = () => {
     navigate('/settings?tab=notifications');
@@ -22,6 +24,21 @@ function NotificationSidebar({ isOpen, onClose }: NotificationSidebarProps) {
   const handleNotificationClick = (notification: any) => {
     navigate(notification.targetUrl);
     onClose();
+  };
+
+  const handleDeleteAllClick = () => {
+    setShowDeleteAllConfirm(true);
+  };
+
+  const handleDeleteAllNotifications = async () => {
+    try {
+      await deleteAllNotifications();
+      setShowDeleteAllConfirm(false);
+      onClose();
+    } catch (err) {
+      console.error('Error deleting all notifications:', err);
+      // Keep dialog open on error so user can retry
+    }
   };
 
   if (!isOpen) return null;
@@ -46,6 +63,13 @@ function NotificationSidebar({ isOpen, onClose }: NotificationSidebarProps) {
       <div className="flex items-center justify-between p-4 border-b border-gray-600">
         <h2 className="text-lg font-semibold text-gray-300">Nachrichten</h2>
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleDeleteAllClick}
+            className="p-1.5 hover:bg-gray-600 rounded-full transition-colors text-gray-300"
+            title="Alle Benachrichtigungen löschen"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
           <button
             onClick={handleSettingsClick}
             className="p-1.5 hover:bg-gray-600 rounded-full transition-colors text-gray-300"
@@ -88,6 +112,16 @@ function NotificationSidebar({ isOpen, onClose }: NotificationSidebarProps) {
           </div>
         )}
       </CustomScrollbar>
+
+      <ConfirmDialog
+        isOpen={showDeleteAllConfirm}
+        title="Alle Benachrichtigungen löschen"
+        message="Möchten Sie wirklich alle Benachrichtigungen löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+        confirmLabel="Alle löschen"
+        cancelLabel="Abbrechen"
+        onConfirm={handleDeleteAllNotifications}
+        onCancel={() => setShowDeleteAllConfirm(false)}
+      />
     </div>
   );
 }

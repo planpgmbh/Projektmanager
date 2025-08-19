@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, addDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, addDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuthState } from './useAuthState';
 import type { Notification } from '../types/notifications';
@@ -82,6 +82,24 @@ export function useNotifications() {
     }
   };
 
+  const deleteAllNotifications = async () => {
+    if (!user) return;
+
+    try {
+      const notificationsQuery = query(
+        collection(db, 'notifications'),
+        where('userId', '==', user.uid)
+      );
+      
+      const snapshot = await getDocs(notificationsQuery);
+      const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+    } catch (err) {
+      console.error('Error deleting all notifications:', err);
+      throw err;
+    }
+  };
+
   const createNotification = async (notification: Omit<Notification, 'id' | 'createdAt'>) => {
     try {
       await addDoc(collection(db, 'notifications'), {
@@ -104,6 +122,7 @@ export function useNotifications() {
     error,
     markAsRead,
     markAllAsRead,
+    deleteAllNotifications,
     createNotification
   };
 }
