@@ -61,6 +61,8 @@ export function useActiveTimer(timeEntries: TimeEntry[], updateTimeEntry: (entry
       // Runde auf das nächste 15-Minuten-Intervall auf
       const roundedHours = roundToNext15Minutes(rawHours);
 
+      console.log(`Timer gestoppt: ${rawHours.toFixed(4)}h → ${roundedHours.toFixed(4)}h (aufgerundet auf 15-Min-Schritte)`);
+
       await updateTimeEntry(entryId, {
         isActive: false,
         hours: roundedHours,
@@ -75,9 +77,12 @@ export function useActiveTimer(timeEntries: TimeEntry[], updateTimeEntry: (entry
 
   const createTimerEntry = useCallback(async (timerEntry: Omit<TimeEntry, 'id' | 'userId' | 'hours'>, addTimeEntry: (entry: Omit<TimeEntry, 'id' | 'userId'>) => Promise<void>) => {
     try {
+      console.log('🔥 createTimerEntry called with:', timerEntry);
+      
       // Stop any currently active timer first
       const activeEntry = timeEntries.find(entry => entry.isActive);
       if (activeEntry) {
+        console.log('🛑 Stopping existing active timer:', activeEntry.id);
         await stopTimer(activeEntry.id);
       }
 
@@ -92,9 +97,11 @@ export function useActiveTimer(timeEntries: TimeEntry[], updateTimeEntry: (entry
         updatedAt: new Date()
       };
 
+      console.log('✅ Creating new timer entry with data:', entryData);
       await addTimeEntry(entryData);
+      console.log('🎉 Timer entry created successfully!');
     } catch (err) {
-      console.error('Error creating timer entry:', err);
+      console.error('❌ Error creating timer entry:', err);
       throw new Error('Fehler beim Starten des Timers');
     }
   }, [timeEntries, stopTimer]);

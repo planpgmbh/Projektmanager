@@ -172,27 +172,40 @@ function MyTasks() {
 
   // Handle task status toggle
   const handleTaskStatusToggle = async (taskId: string, projectId: string, statusdone: boolean) => {
+    console.log('🔄 DEBUG: handleTaskStatusToggle called with:', { taskId, projectId, statusdone });
     try {
       // Get the current task to check if status is actually changing
       const currentTask = tasksWithDetails.find(task => task.id === taskId);
       if (!currentTask) {
+        console.log('❌ DEBUG: Current task not found for taskId:', taskId);
         return;
       }
+      
+      console.log('📋 DEBUG: Current task status:', currentTask.statusdone);
+      console.log('📋 DEBUG: New status:', statusdone);
       
       const taskRef = doc(db, `projects/${projectId}/tasks`, taskId);
       await updateDoc(taskRef, { statusdone });
       
       // Send notification to project managers only when task status changes from false to true
       if (statusdone && !currentTask.statusdone && user) {
+        console.log('🎯 DEBUG: Conditions met for sending notification');
+        
         const project = projects.find(p => p.id === projectId);
         const task = allTasks[projectId]?.find(t => t.id === taskId);
+        
+        console.log('🏗️ DEBUG: Found project:', project);
+        console.log('📋 DEBUG: Found task:', task);
+        console.log('👥 DEBUG: Project PMUserIDs:', project?.PMUserIDs);
         
         if (project && task && project.PMUserIDs) {
           // ÄNDERUNG: Alle Projektmanager benachrichtigen, auch den Sender
           const projectManagersToNotify = project.PMUserIDs;
+          console.log('👥 DEBUG: Project managers to notify (including sender):', projectManagersToNotify);
           
           // Send notification to each project manager
           for (const pmUserId of projectManagersToNotify) {
+            console.log('📤 DEBUG: Sending notification to PM:', pmUserId);
             await createTaskCompletedNotification(
               pmUserId,
               user.uid,
@@ -203,7 +216,17 @@ function MyTasks() {
               taskId
             );
           }
+        } else {
+          console.log('❌ DEBUG: Missing data for notification:');
+          console.log('  - project exists:', !!project);
+          console.log('  - task exists:', !!task);
+          console.log('  - project.PMUserIDs exists:', !!project?.PMUserIDs);
         }
+      } else {
+        console.log('⏭️ DEBUG: Notification conditions not met:');
+        console.log('  - statusdone:', statusdone);
+        console.log('  - !currentTask.statusdone:', !currentTask.statusdone);
+        console.log('  - user exists:', !!user);
       }
     } catch (err) {
       console.error('Error updating task status:', err);

@@ -72,6 +72,8 @@ export function useTimeEntries() {
     if (!user) throw new Error('User not authenticated');
 
     try {
+      console.log('🔥 addTimeEntry called with:', newEntry);
+      
       const entryData = {
         ...newEntry,
         userId: user.uid,
@@ -80,10 +82,12 @@ export function useTimeEntries() {
         // CRITICAL: Don't override isActive - let it come from newEntry
       };
 
+      console.log('💾 Saving to Firebase with data:', entryData);
       await addDoc(collection(db, 'timeEntries'), entryData);
+      console.log('✅ Successfully saved to Firebase');
       setError(null);
     } catch (err) {
-      console.error('Error adding time entry:', err);
+      console.error('❌ Error adding time entry:', err);
       setError('Fehler beim Hinzufügen des Zeiteintrags');
       throw err;
     }
