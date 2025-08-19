@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ListTodo, ChevronDown, ChevronUp, X, Calendar, Clock } from 'lucide-react';
+import { ListTodo, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import { collection, query, onSnapshot, where, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuthState } from '../hooks/useAuthState';
@@ -10,11 +10,10 @@ import { useActiveTimer } from '../hooks/useActiveTimer';
 import { createTaskCompletedNotification } from '../utils/notifications';
 import Sidebar from '../components/Sidebar';
 import PageHeader from '../components/PageHeader';
-import { SearchBar } from '../components/ui/SearchBar';
 import { Button } from '../components/ui/Button';
-import { Dropdown } from '../components/ui/Dropdown';
 import { BudgetBar } from '../components/ui/BudgetBar';
 import AddTimeEntryPopup from '../components/timeTracking/AddTimeEntryPopup';
+import MyTasksFilterBar from '../components/myTasks/MyTasksFilterBar';
 
 interface Task {
   id: string;
@@ -85,20 +84,6 @@ interface SortState {
   field: 'name' | 'customerName' | 'date' | 'totalEffort' | null;
   direction: 'asc' | 'desc';
 }
-
-const STATUS_OPTIONS = [
-  { value: 'open', label: 'Offen' },
-  { value: 'completed', label: 'Abgeschlossen' },
-];
-
-const DUE_DATE_OPTIONS = [
-  { value: 'all', label: 'Alle' },
-  { value: 'overdue', label: 'Überfällig' },
-  { value: 'today', label: 'Heute' },
-  { value: 'this_week', label: 'Diese Woche' },
-  { value: 'next_week', label: 'Nächste Woche' },
-  { value: 'no_date', label: 'Ohne Datum' },
-];
 
 function MyTasks() {
   const { user } = useAuthState();
@@ -580,11 +565,6 @@ function MyTasks() {
       : <ChevronDown className="h-4 w-4 text-gray-600" />;
   };
 
-  const getDueDateLabel = () => {
-    const option = DUE_DATE_OPTIONS.find(opt => opt.value === filters.dueDate);
-    return option ? option.label : 'Alle';
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#e1dede] flex">
@@ -614,127 +594,25 @@ function MyTasks() {
           )}
 
           <div className="bg-white rounded-lg shadow">
-            {/* Header with Search and Filters */}
-            <div className="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
-              <div className="flex items-center gap-4 flex-1">
-                <SearchBar
-                  placeholder="Suche nach Aufgaben..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1 max-w-md"
-                />
-                
-                {/* Status Filter */}
-                <Dropdown
-                  trigger={
-                    <button className="flex items-center gap-2 px-3 py-2 h-10 text-sm bg-white-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors">
-                      <span className="text-gray-700">Status</span>
-                      {hasUserInteractedWithFilters && filters.status.length > 0 && (
-                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
-                          {filters.status.length}
-                        </span>
-                      )}
-                      <ChevronDown className="h-4 w-4 text-gray-600" />
-                    </button>
-                  }
-                  isOpen={isStatusFilterOpen}
-                  onOpenChange={setIsStatusFilterOpen}
-                  maxWidth="200px"
-                >
-                  <div className="py-2">
-                    {STATUS_OPTIONS.map((option) => (
-                      <label
-                        key={option.value}
-                        className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={filters.status.includes(option.value)}
-                          onChange={() => handleStatusFilterChange(option.value)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-3"
-                        />
-                        <span className="text-sm text-gray-700">{option.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </Dropdown>
-
-                {/* Customer Filter */}
-                <Dropdown
-                  trigger={
-                    <button className="flex items-center gap-2 px-3 py-2 h-10 text-sm bg-white-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors">
-                      <span className="text-gray-700">Kunde</span>
-                      {filters.customer.length > 0 && (
-                        <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">
-                          {filters.customer.length}
-                        </span>
-                      )}
-                      <ChevronDown className="h-4 w-4 text-gray-600" />
-                    </button>
-                  }
-                  isOpen={isCustomerFilterOpen}
-                  onOpenChange={setIsCustomerFilterOpen}
-                  maxWidth="300px"
-                >
-                  <div className="py-2 max-h-64 overflow-y-auto">
-                    {uniqueCustomers.map((customer) => (
-                      <label
-                        key={customer}
-                        className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={filters.customer.includes(customer)}
-                          onChange={() => handleCustomerFilterChange(customer)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-3"
-                        />
-                        <span className="text-sm text-gray-700">{customer}</span>
-                      </label>
-                    ))}
-                  </div>
-                </Dropdown>
-
-                {/* Due Date Filter */}
-                <Dropdown
-                  trigger={
-                    <button className="flex items-center gap-2 px-3 py-2 h-10 text-sm bg-white-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors">
-                      <Calendar className="h-4 w-4 text-gray-600" />
-                      <span className="text-gray-700">{getDueDateLabel()}</span>
-                      <ChevronDown className="h-4 w-4 text-gray-600" />
-                    </button>
-                  }
-                  isOpen={isDueDateFilterOpen}
-                  onOpenChange={setIsDueDateFilterOpen}
-                  maxWidth="200px"
-                >
-                  <div className="py-2">
-                    {DUE_DATE_OPTIONS.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => handleDueDateFilterChange(option.value)}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 block ${
-                          option.value === filters.dueDate ? 'font-semibold text-gray-900 bg-gray-50' : 'text-gray-700'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </Dropdown>
-
-                {/* Clear Filters Button */}
-                {hasActiveFilters && (
-                  <Button
-                    variant="secondary"
-                    onClick={clearAllFilters}
-                    icon={X}
-                    className="text-sm h-10"
-                  >
-                    Zurücksetzen
-                  </Button>
-                )}
-              </div>
-            </div>
+            <MyTasksFilterBar
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              filters={filters}
+              sort={sort}
+              uniqueCustomers={uniqueCustomers}
+              hasUserInteractedWithFilters={hasUserInteractedWithFilters}
+              hasActiveFilters={hasActiveFilters}
+              isStatusFilterOpen={isStatusFilterOpen}
+              isCustomerFilterOpen={isCustomerFilterOpen}
+              isDueDateFilterOpen={isDueDateFilterOpen}
+              onStatusFilterOpenChange={setIsStatusFilterOpen}
+              onCustomerFilterOpenChange={setIsCustomerFilterOpen}
+              onDueDateFilterOpenChange={setIsDueDateFilterOpen}
+              onStatusFilterChange={handleStatusFilterChange}
+              onCustomerFilterChange={handleCustomerFilterChange}
+              onDueDateFilterChange={handleDueDateFilterChange}
+              onClearAllFilters={clearAllFilters}
+            />
 
             {/* Table */}
             <div className="overflow-x-auto">
